@@ -1,0 +1,318 @@
+\section{ps\-\_\-decoder\-\_\-s \-Struct \-Reference}
+\label{structps__decoder__s}\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}}
+
+
+\-Decoder object.  
+
+
+
+
+{\ttfamily \#include $<$pocketsphinx\-\_\-internal.\-h$>$}
+
+\subsection*{\-Data \-Fields}
+\begin{DoxyCompactItemize}
+\item 
+{\bf cmd\-\_\-ln\-\_\-t} $\ast$ {\bf config}
+\begin{DoxyCompactList}\small\item\em \-Configuration. \end{DoxyCompactList}\item 
+int {\bf refcount}
+\begin{DoxyCompactList}\small\item\em \-Reference count. \end{DoxyCompactList}\item 
+{\bf acmod\-\_\-t} $\ast$ {\bf acmod}
+\begin{DoxyCompactList}\small\item\em \-Acoustic model. \end{DoxyCompactList}\item 
+{\bf dict\-\_\-t} $\ast$ {\bf dict}
+\begin{DoxyCompactList}\small\item\em \-Pronunciation dictionary. \end{DoxyCompactList}\item 
+{\bf dict2pid\-\_\-t} $\ast$ {\bf d2p}
+\begin{DoxyCompactList}\small\item\em \-Dictionary to senone mapping. \end{DoxyCompactList}\item 
+{\bf logmath\-\_\-t} $\ast$ {\bf lmath}
+\begin{DoxyCompactList}\small\item\em \-Log math computation. \end{DoxyCompactList}\item 
+{\bf glist\-\_\-t} {\bf searches}
+\begin{DoxyCompactList}\small\item\em \-List of search modules. \end{DoxyCompactList}\item 
+{\bf ps\-\_\-search\-\_\-t} $\ast$ {\bf search}
+\begin{DoxyCompactList}\small\item\em \-Currently active search module. \end{DoxyCompactList}\item 
+{\bf ps\-\_\-search\-\_\-t} $\ast$ {\bf phone\-\_\-loop}
+\begin{DoxyCompactList}\small\item\em \-Phone loop search for lookahead. \end{DoxyCompactList}\item 
+int {\bf pl\-\_\-window}
+\begin{DoxyCompactList}\small\item\em \-Window size for phoneme lookahead. \end{DoxyCompactList}\item 
+{\bf uint32} {\bf uttno}
+\begin{DoxyCompactList}\small\item\em \-Utterance counter. \end{DoxyCompactList}\item 
+char $\ast$ {\bf uttid}
+\begin{DoxyCompactList}\small\item\em \-Utterance \-I\-D for current utterance. \end{DoxyCompactList}\item 
+{\bf ptmr\-\_\-t} {\bf perf}
+\begin{DoxyCompactList}\small\item\em \-Performance counter for all of decoding. \end{DoxyCompactList}\item 
+{\bf uint32} {\bf n\-\_\-frame}
+\begin{DoxyCompactList}\small\item\em \-Total number of frames processed. \end{DoxyCompactList}\item 
+char const $\ast$ {\bf mfclogdir}
+\begin{DoxyCompactList}\small\item\em \-Log directory for \-M\-F\-C\-C files. \end{DoxyCompactList}\item 
+char const $\ast$ {\bf rawlogdir}
+\begin{DoxyCompactList}\small\item\em \-Log directory for audio files. \end{DoxyCompactList}\item 
+char const $\ast$ {\bf senlogdir}
+\begin{DoxyCompactList}\small\item\em \-Log directory for senone score files. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Decoder object. 
+
+\-Definition at line 182 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\subsection{\-Field \-Documentation}
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!acmod@{acmod}}
+\index{acmod@{acmod}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{acmod}]{\setlength{\rightskip}{0pt plus 5cm}{\bf acmod\-\_\-t}$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::acmod}}\label{structps__decoder__s_af834d2bc1d44c1d9ef607b025413a0b8}
+
+
+\-Acoustic model. 
+
+
+
+\-Definition at line 188 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-add\-\_\-word(), ps\-\_\-decode\-\_\-senscr(), ps\-\_\-end\-\_\-utt(), ps\-\_\-free(), ps\-\_\-get\-\_\-fe(), ps\-\_\-get\-\_\-feat(), ps\-\_\-get\-\_\-n\-\_\-frames(), ps\-\_\-get\-\_\-utt\-\_\-time(), ps\-\_\-load\-\_\-dict(), ps\-\_\-process\-\_\-cep(), ps\-\_\-process\-\_\-raw(), ps\-\_\-reinit(), ps\-\_\-start\-\_\-utt(), ps\-\_\-update\-\_\-fsgset(), ps\-\_\-update\-\_\-lmset(), and ps\-\_\-update\-\_\-mllr().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!config@{config}}
+\index{config@{config}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{config}]{\setlength{\rightskip}{0pt plus 5cm}{\bf cmd\-\_\-ln\-\_\-t}$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::config}}\label{structps__decoder__s_a0565ed97b32408bd05c8104f020cef05}
+
+
+\-Configuration. 
+
+
+
+\-Definition at line 184 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-end\-\_\-utt(), ps\-\_\-free(), ps\-\_\-get\-\_\-all\-\_\-time(), ps\-\_\-get\-\_\-config(), ps\-\_\-get\-\_\-utt\-\_\-time(), ps\-\_\-lattice\-\_\-read(), ps\-\_\-load\-\_\-dict(), ps\-\_\-reinit(), ps\-\_\-update\-\_\-fsgset(), and ps\-\_\-update\-\_\-lmset().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!d2p@{d2p}}
+\index{d2p@{d2p}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{d2p}]{\setlength{\rightskip}{0pt plus 5cm}{\bf dict2pid\-\_\-t}$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::d2p}}\label{structps__decoder__s_ae6515cbc261686f3f3bbd95719f79793}
+
+
+\-Dictionary to senone mapping. 
+
+
+
+\-Definition at line 190 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-add\-\_\-word(), ps\-\_\-free(), ps\-\_\-load\-\_\-dict(), ps\-\_\-reinit(), ps\-\_\-update\-\_\-fsgset(), and ps\-\_\-update\-\_\-lmset().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!dict@{dict}}
+\index{dict@{dict}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{dict}]{\setlength{\rightskip}{0pt plus 5cm}{\bf dict\-\_\-t}$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::dict}}\label{structps__decoder__s_aef6228c17907cc1d0cef835b238b5d91}
+
+
+\-Pronunciation dictionary. 
+
+
+
+\-Definition at line 189 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-add\-\_\-word(), ps\-\_\-free(), ps\-\_\-lattice\-\_\-read(), ps\-\_\-load\-\_\-dict(), ps\-\_\-reinit(), ps\-\_\-save\-\_\-dict(), ps\-\_\-update\-\_\-fsgset(), and ps\-\_\-update\-\_\-lmset().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!lmath@{lmath}}
+\index{lmath@{lmath}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{lmath}]{\setlength{\rightskip}{0pt plus 5cm}{\bf logmath\-\_\-t}$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::lmath}}\label{structps__decoder__s_abd17fe329f2fb219c5a534f3217c5b95}
+
+
+\-Log math computation. 
+
+
+
+\-Definition at line 191 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-free(), ps\-\_\-get\-\_\-logmath(), ps\-\_\-lattice\-\_\-read(), and ps\-\_\-reinit().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!mfclogdir@{mfclogdir}}
+\index{mfclogdir@{mfclogdir}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{mfclogdir}]{\setlength{\rightskip}{0pt plus 5cm}char const$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::mfclogdir}}\label{structps__decoder__s_a8bb5ef8791798b8dd9bc82b1ec016663}
+
+
+\-Log directory for \-M\-F\-C\-C files. 
+
+
+
+\-Definition at line 206 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-reinit(), and ps\-\_\-start\-\_\-utt().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!n\-\_\-frame@{n\-\_\-frame}}
+\index{n\-\_\-frame@{n\-\_\-frame}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{n\-\_\-frame}]{\setlength{\rightskip}{0pt plus 5cm}{\bf uint32} {\bf ps\-\_\-decoder\-\_\-s\-::n\-\_\-frame}}\label{structps__decoder__s_a2886b321c576c7def449ebb2f37899fd}
+
+
+\-Total number of frames processed. 
+
+
+
+\-Definition at line 205 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-get\-\_\-all\-\_\-time().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!perf@{perf}}
+\index{perf@{perf}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{perf}]{\setlength{\rightskip}{0pt plus 5cm}{\bf ptmr\-\_\-t} {\bf ps\-\_\-decoder\-\_\-s\-::perf}}\label{structps__decoder__s_ab42d1d1e300d2a6df5dd3cd796a27d43}
+
+
+\-Performance counter for all of decoding. 
+
+
+
+\-Definition at line 204 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-end\-\_\-utt(), ps\-\_\-get\-\_\-all\-\_\-time(), ps\-\_\-get\-\_\-hyp(), ps\-\_\-get\-\_\-hyp\-\_\-final(), ps\-\_\-get\-\_\-prob(), ps\-\_\-get\-\_\-utt\-\_\-time(), ps\-\_\-reinit(), ps\-\_\-seg\-\_\-iter(), and ps\-\_\-start\-\_\-utt().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!phone\-\_\-loop@{phone\-\_\-loop}}
+\index{phone\-\_\-loop@{phone\-\_\-loop}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{phone\-\_\-loop}]{\setlength{\rightskip}{0pt plus 5cm}{\bf ps\-\_\-search\-\_\-t}$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::phone\-\_\-loop}}\label{structps__decoder__s_a0c6d141d7a71a1287be00a1ebcc7643d}
+
+
+\-Phone loop search for lookahead. 
+
+
+
+\-Definition at line 198 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-end\-\_\-utt(), ps\-\_\-reinit(), ps\-\_\-start\-\_\-utt(), ps\-\_\-update\-\_\-fsgset(), and ps\-\_\-update\-\_\-lmset().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!pl\-\_\-window@{pl\-\_\-window}}
+\index{pl\-\_\-window@{pl\-\_\-window}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{pl\-\_\-window}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf ps\-\_\-decoder\-\_\-s\-::pl\-\_\-window}}\label{structps__decoder__s_a0f0a6681ffd98af789f6bed556c814e4}
+
+
+\-Window size for phoneme lookahead. 
+
+
+
+\-Definition at line 199 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-end\-\_\-utt(), and ps\-\_\-reinit().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!rawlogdir@{rawlogdir}}
+\index{rawlogdir@{rawlogdir}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{rawlogdir}]{\setlength{\rightskip}{0pt plus 5cm}char const$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::rawlogdir}}\label{structps__decoder__s_aa2610c52a9267ee18ca095169bf34bfd}
+
+
+\-Log directory for audio files. 
+
+
+
+\-Definition at line 207 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-reinit(), and ps\-\_\-start\-\_\-utt().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!refcount@{refcount}}
+\index{refcount@{refcount}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{refcount}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf ps\-\_\-decoder\-\_\-s\-::refcount}}\label{structps__decoder__s_aa5ab90180288b6c9039eb86b496f76aa}
+
+
+\-Reference count. 
+
+
+
+\-Definition at line 185 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-free(), ps\-\_\-init(), and ps\-\_\-retain().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!search@{search}}
+\index{search@{search}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}{\bf ps\-\_\-search\-\_\-t}$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::search}}\label{structps__decoder__s_ad337270efc93613cf8dd7594f6515799}
+
+
+\-Currently active search module. 
+
+
+
+\-Definition at line 197 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-add\-\_\-word(), ps\-\_\-end\-\_\-utt(), ps\-\_\-get\-\_\-fsgset(), ps\-\_\-get\-\_\-hyp(), ps\-\_\-get\-\_\-hyp\-\_\-final(), ps\-\_\-get\-\_\-lattice(), ps\-\_\-get\-\_\-lmset(), ps\-\_\-get\-\_\-prob(), ps\-\_\-lattice\-\_\-read(), ps\-\_\-nbest(), ps\-\_\-reinit(), ps\-\_\-seg\-\_\-iter(), ps\-\_\-start\-\_\-utt(), ps\-\_\-update\-\_\-fsgset(), and ps\-\_\-update\-\_\-lmset().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!searches@{searches}}
+\index{searches@{searches}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{searches}]{\setlength{\rightskip}{0pt plus 5cm}{\bf glist\-\_\-t} {\bf ps\-\_\-decoder\-\_\-s\-::searches}}\label{structps__decoder__s_aa04a75334c8bc39c6e1dc4b1de1d760f}
+
+
+\-List of search modules. 
+
+
+
+\-Definition at line 194 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-load\-\_\-dict(), ps\-\_\-reinit(), ps\-\_\-update\-\_\-fsgset(), and ps\-\_\-update\-\_\-lmset().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!senlogdir@{senlogdir}}
+\index{senlogdir@{senlogdir}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{senlogdir}]{\setlength{\rightskip}{0pt plus 5cm}char const$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::senlogdir}}\label{structps__decoder__s_a0ed3476113fe3d63b13ac5e8da3f3b4f}
+
+
+\-Log directory for senone score files. 
+
+
+
+\-Definition at line 208 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-reinit(), and ps\-\_\-start\-\_\-utt().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!uttid@{uttid}}
+\index{uttid@{uttid}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{uttid}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ {\bf ps\-\_\-decoder\-\_\-s\-::uttid}}\label{structps__decoder__s_a0c21a99a0cb1e71cf7811f99cc17c105}
+
+
+\-Utterance \-I\-D for current utterance. 
+
+
+
+\-Definition at line 203 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-free(), ps\-\_\-get\-\_\-hyp(), ps\-\_\-get\-\_\-prob(), ps\-\_\-get\-\_\-uttid(), and ps\-\_\-start\-\_\-utt().
+
+\index{ps\-\_\-decoder\-\_\-s@{ps\-\_\-decoder\-\_\-s}!uttno@{uttno}}
+\index{uttno@{uttno}!ps_decoder_s@{ps\-\_\-decoder\-\_\-s}}
+\subsubsection[{uttno}]{\setlength{\rightskip}{0pt plus 5cm}{\bf uint32} {\bf ps\-\_\-decoder\-\_\-s\-::uttno}}\label{structps__decoder__s_a0f597370dd162c2799efe216c9b991fc}
+
+
+\-Utterance counter. 
+
+
+
+\-Definition at line 202 of file pocketsphinx\-\_\-internal.\-h.
+
+
+
+\-Referenced by ps\-\_\-start\-\_\-utt().
+
+
+
+\-The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libpocketsphinx/{\bf pocketsphinx\-\_\-internal.\-h}\end{DoxyCompactItemize}

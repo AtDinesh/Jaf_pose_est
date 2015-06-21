@@ -1,0 +1,24 @@
+INFO: info.c(65): Host: 'christophe-lap'
+INFO: info.c(69): Directory: '/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/test/regression'
+INFO: info.c(73): /home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_cepview/.libs/lt-sphinx_cepview Compiled on: Jun 23 2014, AT: 15:09:35
+
+INFO: cmd_ln.c(691): Parsing command line:
+/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_cepview/.libs/lt-sphinx_cepview \
+	-i 13 \
+	-d 13 \
+	-f ../../test/regression/chan3.mfc 
+
+Current configuration:
+[NAME]		[DEFLT]		[VALUE]
+-b		0		0
+-d		10		13
+-describe	0		0
+-e		2147483647	2147483647
+-f				../../test/regression/chan3.mfc
+-header		0		0
+-i		13		13
+-logfn				
+
+INFO: main_cepview.c(159): Displaying 13 out of 13 columns per frame
+INFO: main_cepview.c(160): Total 2190 frames
+

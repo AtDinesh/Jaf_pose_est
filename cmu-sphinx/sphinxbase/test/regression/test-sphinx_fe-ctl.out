@@ -1,0 +1,116 @@
+INFO: cmd_ln.c(691): Parsing command line:
+/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_fe/.libs/lt-sphinx_fe \
+	-samprate 11025 \
+	-frate 105 \
+	-wlen 0.024 \
+	-alpha 0.97 \
+	-ncep 13 \
+	-nfft 512 \
+	-nfilt 36 \
+	-upperf 5400 \
+	-lowerf 130 \
+	-blocksize 262500 \
+	-verbose yes \
+	-c ../../test/regression/chan3.ctl \
+	-di ../../test/regression \
+	-do . \
+	-eo mfc \
+	-input_endian little 
+
+Current configuration:
+[NAME]		[DEFLT]		[VALUE]
+-alpha		0.97		9.700000e-01
+-argfile			
+-blocksize	2048		262500
+-build_outdirs	yes		yes
+-c				../../test/regression/chan3.ctl
+-cep2spec	no		no
+-di				../../test/regression
+-dither		no		no
+-do				.
+-doublebw	no		no
+-ei				
+-eo				mfc
+-example	no		no
+-frate		100		105
+-help		no		no
+-i				
+-input_endian	little		little
+-lifter		0		0
+-logspec	no		no
+-lowerf		133.33334	1.300000e+02
+-mach_endian	little		little
+-mswav		no		no
+-ncep		13		13
+-nchans		1		1
+-nfft		512		512
+-nfilt		40		36
+-nist		no		no
+-npart		0		0
+-nskip		0		0
+-o				
+-ofmt		sphinx		sphinx
+-part		0		0
+-raw		no		no
+-remove_dc	no		no
+-round_filters	yes		yes
+-runlen		-1		-1
+-samprate	16000		1.102500e+04
+-seed		-1		-1
+-smoothspec	no		no
+-sndfile	no		no
+-spec2cep	no		no
+-sph2pipe	no		no
+-transform	legacy		legacy
+-unit_area	yes		yes
+-upperf		6855.4976	5.400000e+03
+-verbose	no		yes
+-warp_params			
+-warp_type	inverse_linear	inverse_linear
+-whichchan	0		0
+-wlen		0.025625	2.400000e-02
+
+INFO: fe_interface.c(171): Current FE Parameters:
+INFO: fe_interface.c(172): 	Sampling Rate:             11025.000000
+INFO: fe_interface.c(173): 	Frame Size:                265
+INFO: fe_interface.c(174): 	Frame Shift:               105
+INFO: fe_interface.c(175): 	FFT Size:                  512
+INFO: fe_interface.c(176): 	Lower Frequency:           130
+INFO: fe_interface.c(178): 	Upper Frequency:           5400
+INFO: fe_interface.c(180): 	Number of filters:         36
+INFO: fe_interface.c(181): 	Number of Overflow Samps:  0
+INFO: fe_interface.c(182): 	Start Utt Status:          0
+INFO: fe_interface.c(183): Will not remove DC offset at frame level
+INFO: fe_interface.c(190): Will not add dither to audio
+INFO: fe_interface.c(196): Will normalize filters to unit area
+INFO: fe_interface.c(198): Will round filter frequencies to DFT points
+INFO: fe_interface.c(200): Will not use double bandwidth in mel filter
+INFO: sphinx_fe.c(1043): Processing all remaining utterances at position 0
+INFO: sphinx_fe.c(850): Converting ../../test/regression/chan3.raw to ./chan3.raw.mfc
+INFO: sphinx_fe.c(850): Converting ../../test/regression/chan3.wav to ./chan3.wav.mfc
+INFO: sphinx_fe.c(850): Converting ../../test/regression/chan3.2chan.wav to ./chan3.2chan.wav.mfc
+INFO: sphinx_fe.c(850): Converting ../../test/regression/chan3.sph to ./chan3.sph.mfc
+INFO: info.c(65): Host: 'christophe-lap'
+INFO: info.c(69): Directory: '/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/test/regression'
+INFO: info.c(73): /home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_cepview/.libs/lt-sphinx_cepview Compiled on: Jun 23 2014, AT: 15:09:35
+
+INFO: cmd_ln.c(691): Parsing command line:
+/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_cepview/.libs/lt-sphinx_cepview \
+	-i 13 \
+	-d 13 \
+	-f chan3.wav.mfc 
+
+Current configuration:
+[NAME]		[DEFLT]		[VALUE]
+-b		0		0
+-d		10		13
+-describe	0		0
+-e		2147483647	2147483647
+-f				chan3.wav.mfc
+-header		0		0
+-i		13		13
+-logfn				
+
+INFO: main_cepview.c(159): Displaying 13 out of 13 columns per frame
+INFO: main_cepview.c(160): Total 2190 frames
+

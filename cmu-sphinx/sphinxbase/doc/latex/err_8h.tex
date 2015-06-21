@@ -1,0 +1,243 @@
+\section{include/sphinxbase/err.h \-File \-Reference}
+\label{err_8h}\index{include/sphinxbase/err.\-h@{include/sphinxbase/err.\-h}}
+
+
+\-Implementation of logging routines.  
+
+
+{\ttfamily \#include $<$stdarg.\-h$>$}\*
+{\ttfamily \#include $<$stdio.\-h$>$}\*
+{\ttfamily \#include $<$errno.\-h$>$}\*
+{\ttfamily \#include $<$sphinxbase/sphinxbase\-\_\-export.\-h$>$}\*
+\subsection*{\-Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define {\bf \-E\-\_\-\-F\-A\-T\-A\-L}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-header(\-\_\-\-\_\-\-F\-I\-L\-E\-\_\-\-\_\-, \-\_\-\-\_\-\-L\-I\-N\-E\-\_\-\-\_\-, \char`\"{}\-F\-A\-T\-A\-L\-\_\-\-E\-R\-R\-O\-R\char`\"{}),\-\_\-\-E\-\_\-\-\_\-die\-\_\-error\label{err_8h_a1a4495946ab2449d61108fe829a94613}
+
+\begin{DoxyCompactList}\small\item\em \-Exit with non-\/zero status after error message. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-F\-A\-T\-A\-L\-\_\-\-S\-Y\-S\-T\-E\-M}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-header(\-\_\-\-\_\-\-F\-I\-L\-E\-\_\-\-\_\-, \-\_\-\-\_\-\-L\-I\-N\-E\-\_\-\-\_\-, \char`\"{}\-S\-Y\-S\-T\-E\-M\-\_\-\-E\-R\-R\-O\-R\char`\"{}),\-\_\-\-E\-\_\-\-\_\-fatal\-\_\-sys\-\_\-error\label{err_8h_a5229a1d58f5f5e69963a8d038ff5bc3e}
+
+\begin{DoxyCompactList}\small\item\em \-Print error text; \-Call perror(\char`\"{}\char`\"{}); exit(errno);. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-W\-A\-R\-N\-\_\-\-S\-Y\-S\-T\-E\-M}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-header(\-\_\-\-\_\-\-F\-I\-L\-E\-\_\-\-\_\-, \-\_\-\-\_\-\-L\-I\-N\-E\-\_\-\-\_\-, \char`\"{}\-S\-Y\-S\-T\-E\-M\-\_\-\-E\-R\-R\-O\-R\char`\"{}),\-\_\-\-E\-\_\-\-\_\-sys\-\_\-error\label{err_8h_a63de511eaca101291914f701e67c5c44}
+
+\begin{DoxyCompactList}\small\item\em \-Print error text; \-Call perror(\char`\"{}\char`\"{});. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-E\-R\-R\-O\-R\-\_\-\-S\-Y\-S\-T\-E\-M}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-header(\-\_\-\-\_\-\-F\-I\-L\-E\-\_\-\-\_\-, \-\_\-\-\_\-\-L\-I\-N\-E\-\_\-\-\_\-, \char`\"{}\-S\-Y\-S\-T\-E\-M\-\_\-\-E\-R\-R\-O\-R\char`\"{}),\-\_\-\-E\-\_\-\-\_\-sys\-\_\-error\label{err_8h_a54ffbfe898d74595c586a1f48f32ef03}
+
+\begin{DoxyCompactList}\small\item\em \-Print error text; \-Call perror(\char`\"{}\char`\"{});. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-I\-N\-F\-O}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-info\-\_\-header(\-\_\-\-\_\-\-F\-I\-L\-E\-\_\-\-\_\-, \-\_\-\-\_\-\-L\-I\-N\-E\-\_\-\-\_\-, \char`\"{}\-I\-N\-F\-O\char`\"{}),\-\_\-\-E\-\_\-\-\_\-pr\-\_\-info\label{err_8h_ac3c705943d946708cea0a1443be1c853}
+
+\begin{DoxyCompactList}\small\item\em \-Print logging information to standard error stream. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-I\-N\-F\-O\-C\-O\-N\-T}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-info\label{err_8h_ae5a17ac5be8c738d3d977b1bea2d4538}
+
+\begin{DoxyCompactList}\small\item\em \-Print logging information without header, to standard error stream. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-I\-N\-F\-O\-\_\-\-N\-O\-F\-N}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-info\-\_\-header\-\_\-wofn(\char`\"{}\-I\-N\-F\-O\char`\"{}),\-\_\-\-E\-\_\-\-\_\-pr\-\_\-info\label{err_8h_ad95ccef073dd6f3c81c84e6aedca1f16}
+
+\begin{DoxyCompactList}\small\item\em \-Print logging information without filename. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-W\-A\-R\-N}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-header(\-\_\-\-\_\-\-F\-I\-L\-E\-\_\-\-\_\-, \-\_\-\-\_\-\-L\-I\-N\-E\-\_\-\-\_\-, \char`\"{}\-W\-A\-R\-N\-I\-N\-G\char`\"{}),\-\_\-\-E\-\_\-\-\_\-pr\-\_\-warn\label{err_8h_a6a794bec721b555ac1f2167f9e12f662}
+
+\begin{DoxyCompactList}\small\item\em \-Print warning information to standard error stream. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-E\-R\-R\-O\-R}~\-\_\-\-E\-\_\-\-\_\-pr\-\_\-header(\-\_\-\-\_\-\-F\-I\-L\-E\-\_\-\-\_\-, \-\_\-\-\_\-\-L\-I\-N\-E\-\_\-\-\_\-, \char`\"{}\-E\-R\-R\-O\-R\char`\"{}),\-\_\-\-E\-\_\-\-\_\-pr\-\_\-warn\label{err_8h_a5f7b2f58f5a663a6bdd51f197ae21993}
+
+\begin{DoxyCompactList}\small\item\em \-Print error message to standard error stream. \end{DoxyCompactList}\item 
+\#define {\bf \-E\-\_\-\-D\-E\-B\-U\-G}(level, x)
+\begin{DoxyCompactList}\small\item\em \-Print debugging information to standard error stream. \end{DoxyCompactList}\item 
+\#define {\bfseries \-E\-\_\-\-D\-E\-B\-U\-G\-C\-O\-N\-T}(level, x)\label{err_8h_a7e8c4b068434a0424751fc2d2c457807}
+
+\end{DoxyCompactItemize}
+\subsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-pr\-\_\-header} (char const $\ast$file, long line, char const $\ast$msg)\label{err_8h_a96379bbd8a6c62698d166e5d12f3370d}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-pr\-\_\-debug\-\_\-header} (char const $\ast$file, long line, int level)\label{err_8h_a173ee0173de4543e08d9d7a38ce18b88}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-pr\-\_\-info\-\_\-header} (char const $\ast$file, long line, char const $\ast$tag)\label{err_8h_a583592f006ae14756c0c4812048c9b5f}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-pr\-\_\-info\-\_\-header\-\_\-wofn} (char const $\ast$msg)\label{err_8h_abb0389e05db688aee439b339f7f6ed89}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-pr\-\_\-warn} (char const $\ast$fmt,...)\label{err_8h_a3c2a4f988b27b2fa9baaa8ecd3f1e61f}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-pr\-\_\-info} (char const $\ast$fmt,...)\label{err_8h_a04fbf9d2c44e4e72f64cd3e2f5a24c38}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-die\-\_\-error} (char const $\ast$fmt,...)\label{err_8h_ae2149bb7cde661a9bee0bdaaea7fab2d}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-abort\-\_\-error} (char const $\ast$fmt,...)\label{err_8h_a0cdeb87987f0c30cd0c99826f9a1f7a8}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-sys\-\_\-error} (char const $\ast$fmt,...)\label{err_8h_a750133ab0eeba2bceba2a4054469857b}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T void {\bfseries \-\_\-\-E\-\_\-\-\_\-fatal\-\_\-sys\-\_\-error} (char const $\ast$fmt,...)\label{err_8h_a39faf53d575084585f79fe685943e95a}
+
+\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T \-F\-I\-L\-E $\ast$ {\bf err\-\_\-set\-\_\-logfp} (\-F\-I\-L\-E $\ast$logfp)
+\begin{DoxyCompactList}\small\item\em \-Direct all logging to a given filehandle. \end{DoxyCompactList}\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T \-F\-I\-L\-E $\ast$ {\bf err\-\_\-get\-\_\-logfp} (void)
+\begin{DoxyCompactList}\small\item\em \-Get the current logging filehandle. \end{DoxyCompactList}\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T int {\bf err\-\_\-set\-\_\-logfile} (char const $\ast$file)
+\begin{DoxyCompactList}\small\item\em \-Append all log messages to a given file. \end{DoxyCompactList}\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T int {\bf err\-\_\-set\-\_\-debug\-\_\-level} (int level)
+\begin{DoxyCompactList}\small\item\em \-Set debugging verbosity level. \end{DoxyCompactList}\item 
+\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T int {\bf err\-\_\-get\-\_\-debug\-\_\-level} (void)
+\begin{DoxyCompactList}\small\item\em \-Get debugging verbosity level. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Implementation of logging routines. \-Logging, warning, debug and error message output funtionality is provided in this file. \-Sphinxbase defines several level of logging messages -\/ \-I\-N\-F\-O, \-W\-A\-R\-N\-I\-N\-G, \-E\-R\-R\-O\-R, \-F\-A\-T\-A\-L. \-By default output goes to standard error output.
+
+\-Logging is implemented through macros. \-They take same arguments as printf\-: format string and values. \-By default source file name and source line are prepended to the message. \-Log output could be redirected to any file using \doxyref{err\-\_\-set\-\_\-logfp()}{p.}{err_8h_a8bac37b001e58048b9f52ea1c756fc08} and \doxyref{err\-\_\-set\-\_\-logfile()}{p.}{err_8h_aa605de73499066475ec4cfb03e4c5a20} functions. \-To disable logging in your application, call err\-\_\-set\-\_\-logfp(\-N\-U\-L\-L).
+
+\-It's possible to log multiline info messages, to do that you need to start message with \-E\-\_\-\-I\-N\-F\-O and output other lines with \-E\-\_\-\-I\-N\-F\-O\-C\-O\-N\-T. 
+
+\-Definition in file {\bf err.\-h}.
+
+
+
+\subsection{\-Define \-Documentation}
+\index{err.\-h@{err.\-h}!\-E\-\_\-\-D\-E\-B\-U\-G@{\-E\-\_\-\-D\-E\-B\-U\-G}}
+\index{\-E\-\_\-\-D\-E\-B\-U\-G@{\-E\-\_\-\-D\-E\-B\-U\-G}!err.h@{err.\-h}}
+\subsubsection[{\-E\-\_\-\-D\-E\-B\-U\-G}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-E\-\_\-\-D\-E\-B\-U\-G}(
+\begin{DoxyParamCaption}
+\item[{}]{level, }
+\item[{}]{x}
+\end{DoxyParamCaption}
+)}\label{err_8h_af46f94d0e21f22f1153f8f1cd9a372d6}
+
+
+\-Print debugging information to standard error stream. 
+
+\-This will only print a message if\-: 1. \-Debugging is enabled at compile time 2. \-The debug level is greater than or equal to {\itshape level\/} 
+
+\-Note that for portability reasons the format and arguments must be enclosed in an extra set of parentheses. 
+
+\-Definition at line 212 of file err.\-h.
+
+
+
+\subsection{\-Function \-Documentation}
+\index{err.\-h@{err.\-h}!err\-\_\-get\-\_\-debug\-\_\-level@{err\-\_\-get\-\_\-debug\-\_\-level}}
+\index{err\-\_\-get\-\_\-debug\-\_\-level@{err\-\_\-get\-\_\-debug\-\_\-level}!err.h@{err.\-h}}
+\subsubsection[{err\-\_\-get\-\_\-debug\-\_\-level}]{\setlength{\rightskip}{0pt plus 5cm}\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T int {\bf err\-\_\-get\-\_\-debug\-\_\-level} (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}\label{err_8h_a1500dc011016aa15244d0d7f2fe66a7e}
+
+
+\-Get debugging verbosity level. 
+
+\-Note that debugging messages are only enabled when compiled with -\/\-D\-D\-E\-B\-U\-G. 
+
+\-Definition at line 74 of file err.\-c.
+
+\index{err.\-h@{err.\-h}!err\-\_\-get\-\_\-logfp@{err\-\_\-get\-\_\-logfp}}
+\index{err\-\_\-get\-\_\-logfp@{err\-\_\-get\-\_\-logfp}!err.h@{err.\-h}}
+\subsubsection[{err\-\_\-get\-\_\-logfp}]{\setlength{\rightskip}{0pt plus 5cm}\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T \-F\-I\-L\-E$\ast$ {\bf err\-\_\-get\-\_\-logfp} (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}\label{err_8h_a9707012f263e46ea66e93349313ddbe6}
+
+
+\-Get the current logging filehandle. 
+
+\begin{DoxyReturn}{\-Returns}
+\-Current logging filehandle, \-N\-U\-L\-L if disabled. 
+\end{DoxyReturn}
+
+
+\-Definition at line 157 of file err.\-c.
+
+
+
+\-Referenced by cmd\-\_\-ln\-\_\-parse\-\_\-r(), err\-\_\-set\-\_\-logfile(), and err\-\_\-set\-\_\-logfp().
+
+\index{err.\-h@{err.\-h}!err\-\_\-set\-\_\-debug\-\_\-level@{err\-\_\-set\-\_\-debug\-\_\-level}}
+\index{err\-\_\-set\-\_\-debug\-\_\-level@{err\-\_\-set\-\_\-debug\-\_\-level}!err.h@{err.\-h}}
+\subsubsection[{err\-\_\-set\-\_\-debug\-\_\-level}]{\setlength{\rightskip}{0pt plus 5cm}\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T int {\bf err\-\_\-set\-\_\-debug\-\_\-level} (
+\begin{DoxyParamCaption}
+\item[{int}]{level}
+\end{DoxyParamCaption}
+)}\label{err_8h_ab77fa009824260d9f103308272dc89b8}
+
+
+\-Set debugging verbosity level. 
+
+\-Note that debugging messages are only enabled when compiled with -\/\-D\-D\-E\-B\-U\-G.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em level} & \-Verbosity level to set, or 0 to disable debug messages. \\
+\hline
+\end{DoxyParams}
+
+
+\-Definition at line 68 of file err.\-c.
+
+\index{err.\-h@{err.\-h}!err\-\_\-set\-\_\-logfile@{err\-\_\-set\-\_\-logfile}}
+\index{err\-\_\-set\-\_\-logfile@{err\-\_\-set\-\_\-logfile}!err.h@{err.\-h}}
+\subsubsection[{err\-\_\-set\-\_\-logfile}]{\setlength{\rightskip}{0pt plus 5cm}\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T int {\bf err\-\_\-set\-\_\-logfile} (
+\begin{DoxyParamCaption}
+\item[{char const $\ast$}]{file}
+\end{DoxyParamCaption}
+)}\label{err_8h_aa605de73499066475ec4cfb03e4c5a20}
+
+
+\-Append all log messages to a given file. 
+
+\-Previous logging filehandle is closed (unless it was stdout or stderr).
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em file} & \-File to send log messages to, or \-N\-U\-L\-L to disable logging. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+0 for success, $<$0 for failure (e.\-g. if file does not exist) 
+\end{DoxyReturn}
+
+
+\-Definition at line 190 of file err.\-c.
+
+
+
+\-References err\-\_\-get\-\_\-logfp().
+
+
+
+\-Referenced by cmd\-\_\-ln\-\_\-parse\-\_\-r().
+
+\index{err.\-h@{err.\-h}!err\-\_\-set\-\_\-logfp@{err\-\_\-set\-\_\-logfp}}
+\index{err\-\_\-set\-\_\-logfp@{err\-\_\-set\-\_\-logfp}!err.h@{err.\-h}}
+\subsubsection[{err\-\_\-set\-\_\-logfp}]{\setlength{\rightskip}{0pt plus 5cm}\-S\-P\-H\-I\-N\-X\-B\-A\-S\-E\-\_\-\-E\-X\-P\-O\-R\-T \-F\-I\-L\-E$\ast$ {\bf err\-\_\-set\-\_\-logfp} (
+\begin{DoxyParamCaption}
+\item[{\-F\-I\-L\-E $\ast$}]{logfp}
+\end{DoxyParamCaption}
+)}\label{err_8h_a8bac37b001e58048b9f52ea1c756fc08}
+
+
+\-Direct all logging to a given filehandle. 
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em logfp} & \-Filehandle to send log messages to, or \-N\-U\-L\-L to disable logging. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-Previous logging filehandle, if any. 
+\end{DoxyReturn}
+
+
+\-Definition at line 179 of file err.\-c.
+
+
+
+\-References err\-\_\-get\-\_\-logfp().
+

@@ -1,0 +1,84 @@
+\section{ptmr\-\_\-t \-Struct \-Reference}
+\label{structptmr__t}\index{ptmr\-\_\-t@{ptmr\-\_\-t}}
+
+
+\-Generic timer structures and functions for coarse-\/grained performance measurements using standard system calls.  
+
+
+
+
+{\ttfamily \#include $<$profile.\-h$>$}
+
+\subsection*{\-Data \-Fields}
+\begin{DoxyCompactItemize}
+\item 
+const char $\ast$ {\bf name}
+\begin{DoxyCompactList}\small\item\em \-Timer print name; \-N\-U\-L\-L terminates an array of timers. \end{DoxyCompactList}\item 
+float64 {\bf t\-\_\-cpu}\label{structptmr__t_acbd784f7332329999925d396deae3a5d}
+
+\begin{DoxyCompactList}\small\item\em \-C\-P\-U time accumulated since most recent reset op. \end{DoxyCompactList}\item 
+float64 {\bf t\-\_\-elapsed}\label{structptmr__t_a743fce329d82fd7a9130cba5bbccd991}
+
+\begin{DoxyCompactList}\small\item\em \-Elapsed time accumulated since most recent reset. \end{DoxyCompactList}\item 
+float64 {\bf t\-\_\-tot\-\_\-cpu}\label{structptmr__t_a301d13acc21718143b8b39b7af8b6677}
+
+\begin{DoxyCompactList}\small\item\em \-Total \-C\-P\-U time since creation. \end{DoxyCompactList}\item 
+float64 {\bf t\-\_\-tot\-\_\-elapsed}\label{structptmr__t_a2dc87aa035c8eb542279ca4496dd76f1}
+
+\begin{DoxyCompactList}\small\item\em \-Total elapsed time since creation. \end{DoxyCompactList}\item 
+float64 {\bf start\-\_\-cpu}
+\item 
+float64 {\bf start\-\_\-elapsed}
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Generic timer structures and functions for coarse-\/grained performance measurements using standard system calls. 
+
+\-Definition at line 157 of file profile.\-h.
+
+
+
+\subsection{\-Field \-Documentation}
+\index{ptmr\-\_\-t@{ptmr\-\_\-t}!name@{name}}
+\index{name@{name}!ptmr_t@{ptmr\-\_\-t}}
+\subsubsection[{name}]{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ {\bf ptmr\-\_\-t\-::name}}\label{structptmr__t_a73b51c5a047300d77b3a82a7dcaf44f1}
+
+
+\-Timer print name; \-N\-U\-L\-L terminates an array of timers. 
+
+\-Used by ptmr\-\_\-print\-\_\-all 
+
+\-Definition at line 158 of file profile.\-h.
+
+
+
+\-Referenced by ptmr\-\_\-print\-\_\-all(), and ptmr\-\_\-reset\-\_\-all().
+
+\index{ptmr\-\_\-t@{ptmr\-\_\-t}!start\-\_\-cpu@{start\-\_\-cpu}}
+\index{start\-\_\-cpu@{start\-\_\-cpu}!ptmr_t@{ptmr\-\_\-t}}
+\subsubsection[{start\-\_\-cpu}]{\setlength{\rightskip}{0pt plus 5cm}float64 {\bf ptmr\-\_\-t\-::start\-\_\-cpu}}\label{structptmr__t_a85c0c5f0e321cf11fb478b92a05223e8}
+-\/-\/-\/-\/ \-F\-O\-R \-I\-N\-T\-E\-R\-N\-A\-L \-U\-S\-E \-O\-N\-L\-Y -\/-\/-\/-\/ 
+
+\-Definition at line 164 of file profile.\-h.
+
+
+
+\-Referenced by ptmr\-\_\-start(), and ptmr\-\_\-stop().
+
+\index{ptmr\-\_\-t@{ptmr\-\_\-t}!start\-\_\-elapsed@{start\-\_\-elapsed}}
+\index{start\-\_\-elapsed@{start\-\_\-elapsed}!ptmr_t@{ptmr\-\_\-t}}
+\subsubsection[{start\-\_\-elapsed}]{\setlength{\rightskip}{0pt plus 5cm}float64 {\bf ptmr\-\_\-t\-::start\-\_\-elapsed}}\label{structptmr__t_a1702b16a6c6bcb82f6c636f5e68af188}
+-\/-\/-\/-\/ \-F\-O\-R \-I\-N\-T\-E\-R\-N\-A\-L \-U\-S\-E \-O\-N\-L\-Y -\/-\/-\/-\/ 
+
+\-Definition at line 165 of file profile.\-h.
+
+
+
+\-Referenced by ptmr\-\_\-start(), and ptmr\-\_\-stop().
+
+
+
+\-The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/sphinxbase/{\bf profile.\-h}\end{DoxyCompactItemize}

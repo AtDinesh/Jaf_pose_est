@@ -1,0 +1,148 @@
+\section{include/fsg\-\_\-set.h \-File \-Reference}
+\label{fsg__set_8h}\index{include/fsg\-\_\-set.\-h@{include/fsg\-\_\-set.\-h}}
+
+
+\-Public functions for \-F\-S\-G decoding.  
+
+
+{\ttfamily \#include $<$sphinxbase/fsg\-\_\-model.\-h$>$}\*
+{\ttfamily \#include $<$sphinxbase/hash\-\_\-table.\-h$>$}\*
+{\ttfamily \#include $<$sphinxbase/jsgf.\-h$>$}\*
+{\ttfamily \#include $<$pocketsphinx\-\_\-export.\-h$>$}\*
+\subsection*{\-Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct {\bf fsg\-\_\-search\-\_\-s} {\bf fsg\-\_\-set\-\_\-t}\label{fsg__set_8h_a2af506620f0690db7ed8b09719532e4c}
+
+\begin{DoxyCompactList}\small\item\em \-Set of finite-\/state grammars used in decoding. \end{DoxyCompactList}\item 
+typedef {\bf hash\-\_\-iter\-\_\-t} {\bf fsg\-\_\-set\-\_\-iter\-\_\-t}\label{fsg__set_8h_abb8eed644c915f0599dc2cce38767b70}
+
+\begin{DoxyCompactList}\small\item\em \-Iterator over finite-\/state grammars. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T \*
+{\bf fsg\-\_\-set\-\_\-iter\-\_\-t} $\ast$ {\bf fsg\-\_\-set\-\_\-iter} ({\bf fsg\-\_\-set\-\_\-t} $\ast$fsgs)\label{fsg__set_8h_ae258fe4457affc6de5548330f33470ca}
+
+\begin{DoxyCompactList}\small\item\em \-Get an iterator over all finite-\/state grammars in a set. \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T \*
+{\bf fsg\-\_\-set\-\_\-iter\-\_\-t} $\ast$ {\bf fsg\-\_\-set\-\_\-iter\-\_\-next} ({\bf fsg\-\_\-set\-\_\-iter\-\_\-t} $\ast$itor)\label{fsg__set_8h_a50a455ce026c87a66d85363e874e982d}
+
+\begin{DoxyCompactList}\small\item\em \-Advance an iterator to the next grammar in the set. \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t $\ast$ {\bf fsg\-\_\-set\-\_\-iter\-\_\-fsg} ({\bf fsg\-\_\-set\-\_\-iter\-\_\-t} $\ast$itor)\label{fsg__set_8h_a139c12323411b8366c66e97e112ca8c1}
+
+\begin{DoxyCompactList}\small\item\em \-Get the current rule in an \-F\-S\-G iterator. \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T void {\bf fsg\-\_\-set\-\_\-iter\-\_\-free} ({\bf fsg\-\_\-set\-\_\-iter\-\_\-t} $\ast$itor)\label{fsg__set_8h_a4e31d748ffd9d99fc626c2a1036c3699}
+
+\begin{DoxyCompactList}\small\item\em \-Free an \-F\-S\-G iterator (if the end hasn't been reached). \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t $\ast$ {\bf fsg\-\_\-set\-\_\-get\-\_\-fsg} ({\bf fsg\-\_\-set\-\_\-t} $\ast$fsgs, char const $\ast$name)
+\begin{DoxyCompactList}\small\item\em \-Lookup the \-F\-S\-G associated with the given name. \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t $\ast$ {\bf fsg\-\_\-set\-\_\-add} ({\bf fsg\-\_\-set\-\_\-t} $\ast$fsgs, char const $\ast$name, fsg\-\_\-model\-\_\-t $\ast$wfsg)
+\begin{DoxyCompactList}\small\item\em \-Add the given \-F\-S\-G to the collection of \-F\-S\-Gs known to this search object. \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t $\ast$ {\bf fsg\-\_\-set\-\_\-remove} ({\bf fsg\-\_\-set\-\_\-t} $\ast$fsgs, fsg\-\_\-model\-\_\-t $\ast$wfsg)\label{fsg__set_8h_ac46a51a7d298277e978821bb61236062}
+
+\begin{DoxyCompactList}\small\item\em \-Delete the given \-F\-S\-G from the known collection. \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t $\ast$ {\bf fsg\-\_\-set\-\_\-remove\-\_\-byname} ({\bf fsg\-\_\-set\-\_\-t} $\ast$fsgs, char const $\ast$name)\label{fsg__set_8h_a48e53ea0b48930ab48a445240162746d}
+
+\begin{DoxyCompactList}\small\item\em \-Like fsg\-\_\-set\-\_\-del\-\_\-fsg(), but identifies the \-F\-S\-G by its name. \end{DoxyCompactList}\item 
+\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t $\ast$ {\bf fsg\-\_\-set\-\_\-select} ({\bf fsg\-\_\-set\-\_\-t} $\ast$fsgs, const char $\ast$name)
+\begin{DoxyCompactList}\small\item\em \-Switch to a new \-F\-S\-G (identified by its string name). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Public functions for \-F\-S\-G decoding. 
+
+\-Definition in file {\bf fsg\-\_\-set.\-h}.
+
+
+
+\subsection{\-Function \-Documentation}
+\index{fsg\-\_\-set.\-h@{fsg\-\_\-set.\-h}!fsg\-\_\-set\-\_\-add@{fsg\-\_\-set\-\_\-add}}
+\index{fsg\-\_\-set\-\_\-add@{fsg\-\_\-set\-\_\-add}!fsg_set.h@{fsg\-\_\-set.\-h}}
+\subsubsection[{fsg\-\_\-set\-\_\-add}]{\setlength{\rightskip}{0pt plus 5cm}\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t$\ast$ {\bf fsg\-\_\-set\-\_\-add} (
+\begin{DoxyParamCaption}
+\item[{{\bf fsg\-\_\-set\-\_\-t} $\ast$}]{fsgs, }
+\item[{char const $\ast$}]{name, }
+\item[{fsg\-\_\-model\-\_\-t $\ast$}]{wfsg}
+\end{DoxyParamCaption}
+)}\label{fsg__set_8h_a283d0bc1d33f1f6d961bdfbb7939b853}
+
+
+\-Add the given \-F\-S\-G to the collection of \-F\-S\-Gs known to this search object. 
+
+\-The given fsg is simply added to the collection. \-It is not automatically made the currently active one.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em name} & \-Name to associate with this \-F\-S\-G. \-If \-N\-U\-L\-L, this will be taken from the \-F\-S\-G structure. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-A pointer to the \-F\-S\-G associated with name, or \-N\-U\-L\-L on failure. \-If this pointer is not equal to wfsg, then there was a name conflict, and wfsg was not added. 
+\end{DoxyReturn}
+
+
+\-Definition at line 381 of file fsg\-\_\-search.\-c.
+
+
+
+\-References cmd\-\_\-ln\-\_\-boolean\-\_\-r, fsg\-\_\-set\-\_\-add(), fsg\-\_\-search\-\_\-s\-::fsgs, hash\-\_\-table\-\_\-enter(), and \-N\-U\-L\-L.
+
+
+
+\-Referenced by fsg\-\_\-set\-\_\-add().
+
+\index{fsg\-\_\-set.\-h@{fsg\-\_\-set.\-h}!fsg\-\_\-set\-\_\-get\-\_\-fsg@{fsg\-\_\-set\-\_\-get\-\_\-fsg}}
+\index{fsg\-\_\-set\-\_\-get\-\_\-fsg@{fsg\-\_\-set\-\_\-get\-\_\-fsg}!fsg_set.h@{fsg\-\_\-set.\-h}}
+\subsubsection[{fsg\-\_\-set\-\_\-get\-\_\-fsg}]{\setlength{\rightskip}{0pt plus 5cm}\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t$\ast$ {\bf fsg\-\_\-set\-\_\-get\-\_\-fsg} (
+\begin{DoxyParamCaption}
+\item[{{\bf fsg\-\_\-set\-\_\-t} $\ast$}]{fsgs, }
+\item[{char const $\ast$}]{name}
+\end{DoxyParamCaption}
+)}\label{fsg__set_8h_a91e2b8cba4e0ba30478260c18a36ed26}
+
+
+\-Lookup the \-F\-S\-G associated with the given name. 
+
+\begin{DoxyReturn}{\-Returns}
+\-The \-F\-S\-G associated with name, or \-N\-U\-L\-L if no match found. 
+\end{DoxyReturn}
+
+
+\-Definition at line 371 of file fsg\-\_\-search.\-c.
+
+
+
+\-References fsg\-\_\-set\-\_\-get\-\_\-fsg(), fsg\-\_\-search\-\_\-s\-::fsgs, hash\-\_\-table\-\_\-lookup(), and \-N\-U\-L\-L.
+
+
+
+\-Referenced by fsg\-\_\-set\-\_\-get\-\_\-fsg(), and fsg\-\_\-set\-\_\-select().
+
+\index{fsg\-\_\-set.\-h@{fsg\-\_\-set.\-h}!fsg\-\_\-set\-\_\-select@{fsg\-\_\-set\-\_\-select}}
+\index{fsg\-\_\-set\-\_\-select@{fsg\-\_\-set\-\_\-select}!fsg_set.h@{fsg\-\_\-set.\-h}}
+\subsubsection[{fsg\-\_\-set\-\_\-select}]{\setlength{\rightskip}{0pt plus 5cm}\-P\-O\-C\-K\-E\-T\-S\-P\-H\-I\-N\-X\-\_\-\-E\-X\-P\-O\-R\-T fsg\-\_\-model\-\_\-t$\ast$ {\bf fsg\-\_\-set\-\_\-select} (
+\begin{DoxyParamCaption}
+\item[{{\bf fsg\-\_\-set\-\_\-t} $\ast$}]{fsgs, }
+\item[{const char $\ast$}]{name}
+\end{DoxyParamCaption}
+)}\label{fsg__set_8h_afbd05e7638e6a947fb056cc46dfb8fcb}
+
+
+\-Switch to a new \-F\-S\-G (identified by its string name). 
+
+\begin{DoxyReturn}{\-Returns}
+\-Pointer to new \-F\-S\-G, or \-N\-U\-L\-L on failure. 
+\end{DoxyReturn}
+
+
+\-Definition at line 455 of file fsg\-\_\-search.\-c.
+
+
+
+\-References \-E\-\_\-\-E\-R\-R\-O\-R, fsg\-\_\-search\-\_\-s\-::fsg, fsg\-\_\-set\-\_\-get\-\_\-fsg(), fsg\-\_\-set\-\_\-select(), and \-N\-U\-L\-L.
+
+
+
+\-Referenced by fsg\-\_\-set\-\_\-select().
+

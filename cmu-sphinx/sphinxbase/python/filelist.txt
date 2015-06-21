@@ -1,0 +1,6 @@
+/home/christophe/ROS/catkin_ws/src/demo-riddle/lib/python2.7/site-packages/sphinxbase.so
+/home/christophe/ROS/catkin_ws/src/demo-riddle/lib/python2.7/site-packages/SphinxBase-0.8-py2.7.egg-info
+/home/christophe/ROS/catkin_ws/src/demo-riddle/lib/python2.7/site-packages/SphinxBase-0.8-py2.7.egg-info/dependency_links.txt
+/home/christophe/ROS/catkin_ws/src/demo-riddle/lib/python2.7/site-packages/SphinxBase-0.8-py2.7.egg-info/top_level.txt
+/home/christophe/ROS/catkin_ws/src/demo-riddle/lib/python2.7/site-packages/SphinxBase-0.8-py2.7.egg-info/SOURCES.txt
+/home/christophe/ROS/catkin_ws/src/demo-riddle/lib/python2.7/site-packages/SphinxBase-0.8-py2.7.egg-info/PKG-INFO

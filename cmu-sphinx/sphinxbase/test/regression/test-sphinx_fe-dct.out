@@ -1,0 +1,146 @@
+INFO: cmd_ln.c(691): Parsing command line:
+/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_fe/.libs/lt-sphinx_fe \
+	-transform dct \
+	-cep2spec yes \
+	-nfilt 36 \
+	-i ../../test/regression/chan3.mfc \
+	-o test-sphinx_fe-dct.logspec.out 
+
+Current configuration:
+[NAME]		[DEFLT]		[VALUE]
+-alpha		0.97		9.700000e-01
+-argfile			
+-blocksize	2048		2048
+-build_outdirs	yes		yes
+-c				
+-cep2spec	no		yes
+-di				
+-dither		no		no
+-do				
+-doublebw	no		no
+-ei				
+-eo				
+-example	no		no
+-frate		100		100
+-help		no		no
+-i				../../test/regression/chan3.mfc
+-input_endian	little		little
+-lifter		0		0
+-logspec	no		no
+-lowerf		133.33334	1.333333e+02
+-mach_endian	little		little
+-mswav		no		no
+-ncep		13		13
+-nchans		1		1
+-nfft		512		512
+-nfilt		40		36
+-nist		no		no
+-npart		0		0
+-nskip		0		0
+-o				test-sphinx_fe-dct.logspec.out
+-ofmt		sphinx		sphinx
+-part		0		0
+-raw		no		no
+-remove_dc	no		no
+-round_filters	yes		yes
+-runlen		-1		-1
+-samprate	16000		1.600000e+04
+-seed		-1		-1
+-smoothspec	no		no
+-sndfile	no		no
+-spec2cep	no		no
+-sph2pipe	no		no
+-transform	legacy		dct
+-unit_area	yes		yes
+-upperf		6855.4976	6.855498e+03
+-verbose	no		no
+-warp_params			
+-warp_type	inverse_linear	inverse_linear
+-whichchan	0		0
+-wlen		0.025625	2.562500e-02
+
+INFO: cmd_ln.c(691): Parsing command line:
+/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_fe/.libs/lt-sphinx_fe \
+	-transform dct \
+	-spec2cep yes \
+	-nfilt 36 \
+	-i test-sphinx_fe-dct.logspec.out \
+	-o test-sphinx_fe-dct.mfc.out 
+
+Current configuration:
+[NAME]		[DEFLT]		[VALUE]
+-alpha		0.97		9.700000e-01
+-argfile			
+-blocksize	2048		2048
+-build_outdirs	yes		yes
+-c				
+-cep2spec	no		no
+-di				
+-dither		no		no
+-do				
+-doublebw	no		no
+-ei				
+-eo				
+-example	no		no
+-frate		100		100
+-help		no		no
+-i				test-sphinx_fe-dct.logspec.out
+-input_endian	little		little
+-lifter		0		0
+-logspec	no		no
+-lowerf		133.33334	1.333333e+02
+-mach_endian	little		little
+-mswav		no		no
+-ncep		13		13
+-nchans		1		1
+-nfft		512		512
+-nfilt		40		36
+-nist		no		no
+-npart		0		0
+-nskip		0		0
+-o				test-sphinx_fe-dct.mfc.out
+-ofmt		sphinx		sphinx
+-part		0		0
+-raw		no		no
+-remove_dc	no		no
+-round_filters	yes		yes
+-runlen		-1		-1
+-samprate	16000		1.600000e+04
+-seed		-1		-1
+-smoothspec	no		no
+-sndfile	no		no
+-spec2cep	no		yes
+-sph2pipe	no		no
+-transform	legacy		dct
+-unit_area	yes		yes
+-upperf		6855.4976	6.855498e+03
+-verbose	no		no
+-warp_params			
+-warp_type	inverse_linear	inverse_linear
+-whichchan	0		0
+-wlen		0.025625	2.562500e-02
+
+INFO: info.c(65): Host: 'christophe-lap'
+INFO: info.c(69): Directory: '/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/test/regression'
+INFO: info.c(73): /home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_cepview/.libs/lt-sphinx_cepview Compiled on: Jun 23 2014, AT: 15:09:35
+
+INFO: cmd_ln.c(691): Parsing command line:
+/home/christophe/ROS/catkin_ws/src/demo-riddle/src/cmu-sphinx/sphinxbase/src/sphinx_cepview/.libs/lt-sphinx_cepview \
+	-i 13 \
+	-d 13 \
+	-f test-sphinx_fe-dct.mfc.out 
+
+Current configuration:
+[NAME]		[DEFLT]		[VALUE]
+-b		0		0
+-d		10		13
+-describe	0		0
+-e		2147483647	2147483647
+-f				test-sphinx_fe-dct.mfc.out
+-header		0		0
+-i		13		13
+-logfn				
+
+INFO: main_cepview.c(159): Displaying 13 out of 13 columns per frame
+INFO: main_cepview.c(160): Total 2190 frames
+
