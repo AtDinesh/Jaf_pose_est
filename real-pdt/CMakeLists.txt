@@ -12,9 +12,9 @@ ${EIGEN3_INCLUDE_DIR}
 
 set(CMAKE_CXX_FLAGS "-O3")
 
-if( $ENV{ROBOT} STREQUAL "pr2" )
-    set(ARGTABLE_LIB "/home/aamekonn/src-install/lib" )
-endif()
+#if( $ENV{ROBOT} STREQUAL "pr2" )
+ #   set(ARGTABLE_LIB "/home/aamekonn/src-install/lib" )
+# endif()
 
 message ("argtable lib path : " ${ARGTABLE_LIB} "on host " $ENV{HOSTNAME})
 

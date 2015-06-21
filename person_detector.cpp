@@ -43,15 +43,29 @@
 #include "groundplaneestimator.h"
 
 #include "fovis/fovis.hpp"
-#include "Tracker.h"
+//#include "Tracker.h"
 #include "Eigen/Core"
 
 #include <queue>
 
+//After Tracker.h removal
+#include <CImg/CImg.h>
+#include "camera/Camera.h"
+#include "Visualization.h"
+#include "Detections.h"
+#include <cstdio>               //for getch function
 
+// include OpenCV
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
+//to use pca (libpca)
+//#include <vector>
+//#include "/home/datchuth/src-build/include/pca.h"
 
 #include <cv.h>
 #include <highgui.h>
+#include <list>
 
 //message topic headers
 #include "riddle/DetectedPersonsList.h"
@@ -59,6 +73,11 @@
 
 #include <riddle/FindPersonAction.h>
 #include <actionlib/server/simple_action_server.h>
+
+/* Define this variable to generate detection files
+ * for ROC curve generation (after post-processing)
+ */
+//#define IROS_EVAL_SECTION
 
 typedef actionlib::SimpleActionServer<riddle::FindPersonAction> FindPersonServer;
 //tf stuff
@@ -75,6 +94,8 @@ string g_data_root_path;
 // Get RGB Image
 
 int global_frame_counter = 0;
+Matrix<int> labeledMap;                     //Added !!!
+Vector<double> pos3D_plane;
 
 inline double CPUTime()
 {
@@ -103,9 +124,9 @@ void ReadConfigFile(std::string data_root_path)
     //=====================================
     config.readInto(Globals::camPath_left, "camPath_left");
     Globals::camPath_left = data_root_path + Globals::camPath_left;
-    
+
     config.readInto(Globals::sImagePath_left, "sImagePath_left");
-    
+
     config.readInto(Globals::tempDepthL, "tempDepthL");
     config.readInto(Globals::path_to_planes, "path_to_planes");
 
@@ -250,15 +271,16 @@ void ReadConfigFile(std::string data_root_path)
     //======================================
     Globals::render_bbox3D = config.read("render_bbox3D", true);
     Globals::render_bbox2D = config.read("render_bbox2D", false);
-    Globals::render_tracking_numbers = config.read("render_tracking_numbers", false);
+    //Globals::render_tracking_numbers = config.read("render_tracking_numbers", false);																//Modified
 
-    //======================================
+    /*//======================================																//Modified
     // MDL parameters for trajectories
     //======================================
-    Globals::k1 = config.read<double>("k1");
-    Globals::k2 = config.read<double>("k2");
-    Globals::k3 = config.read<double>("k3");
-    Globals::k4 = config.read<double>("k4");
+    Globals::k1 = config.read<double>("k1");																//Modified
+    Globals::k2 = config.read<double>("k2");																//Modified
+    Globals::k3 = config.read<double>("k3");																//Modified
+    Globals::k4 = config.read<double>("k4");																//Modified
+	*/
 
     //======================================
     // Threshold for distinction between static/moving object
@@ -271,10 +293,10 @@ void ReadConfigFile(std::string data_root_path)
     //======================================
     Globals::dSameIdThresh = config.read<double>("dSameIdThresh");
 
-    //======================================
+    /*//======================================																//Modified
     // Trajectory
     //======================================
-    Globals::threshLengthTraj = config.read<int>("threshLengthTraj");
+    Globals::threshLengthTraj = config.read<int>("threshLengthTraj");*/
 
     //======================================
     // Thresholds for accepted and displayed hypotheses
@@ -300,8 +322,8 @@ void ReadConfigFile(std::string data_root_path)
     Globals::sysUncVel = config.read<double>("sysUncVel");
     Globals::sysUncAcc = config.read<double>("sysUncAcc");
 
-    Globals::kalmanObsMotionModelthresh = config.read<double>("kalmanObsMotionModelthresh");
-    Globals::kalmanObsColorModelthresh = config.read<double>("kalmanObsColorModelthresh");
+    Globals::kalmanObsMotionModelthresh = config.read<double>("kalmanObsMotionModelthresh");																//Modified
+    Globals::kalmanObsColorModelthresh = config.read<double>("kalmanObsColorModelthresh");																//Modified
 
     /////////////////////////////////GP Estimator/////////////////////////
     Globals::nrInter_ransac = config.read<int>("nrInter_ransac");
@@ -323,12 +345,12 @@ void ReadConfigFile(std::string data_root_path)
     //////////////////////////Streaming///////////////////////
     //config.readInto(Globals::stream_dest_IP, "stream_dest_IP");
 
-    ////////////////////////HOG Detector////////////////////////
+    /*////////////////////////HOG Detector////////////////////////															//Modified
     Globals::hog_max_scale = config.read<float>("hog_max_scale",1.9);
     Globals::hog_score_thresh = config.read<float>("hog_score_thresh",0.4);
 
     ///////////////////////Components///////////////////////////
-    Globals::use_hog = config.read("use_hog", false);
+    Globals::use_hog = config.read("use_hog", false);*/
     Globals::use_segmentation_roi = config.read("use_segmentation_roi", false);
     Globals::use_local_max = config.read("use_local_max", true);
 }
@@ -413,6 +435,68 @@ class DetectionTrackingSystem
 {
 public:
 
+    int computeOrientation(Vector<int>& x_distribution, Vector<int>& dist_distribution, double& dispersionXY)
+    {
+        if (x_distribution.getSize() != dist_distribution.getSize() ||x_distribution.getSize()==0)
+        {
+            std::cout << "Error in vector sizes - computeOrientation function" << std::endl;
+			return -1;
+        }
+
+        // find barycenter in x and y
+        double barycenter_x = x_distribution.sum();;
+        barycenter_x = barycenter_x/x_distribution.getSize();
+        // arithmetical mean
+
+		double barycenter_y = dist_distribution.sum();
+        barycenter_y = barycenter_y/dist_distribution.getSize();
+
+        // calculate mu_11, mu_20 and mu_02 (phi = arctan(2mu_11/(mu_20 - mu_02))/2)
+        // mu_pq = SUM[y=0..L-1]SUM[x=0..C-1](x-x_bar)^p*(y-y_bar)^q
+
+        double mu_11 = 0;
+        double mu_20 = 0;
+        double mu_02 = 0;
+
+        for (int i = 0; i< int(x_distribution.getSize()); ++i)
+        {
+            mu_11 += pow(x_distribution(i)-barycenter_x,1.0)*pow(dist_distribution(i)-barycenter_y,1.0);
+            mu_20 += pow(x_distribution(i)-barycenter_x,2.0);
+            mu_02 += pow(dist_distribution(i)-barycenter_y,2.0);
+        }
+
+        dispersionXY = mu_20/mu_02;
+        double resultat = atan(2*mu_11/(mu_20-mu_02));
+
+        resultat = 0.5*resultat * 180/3.14159265;
+//        resultat = resultat * 180/3.14159265;
+//        resultat = int(resultat) % 360;
+
+        return resultat;
+
+    }
+
+    void correctAngle(double& angle, double& ratio_disp)
+    {
+        int poly_coeffs[3] = {3.3744, -0.0004, -0.0009}; //polynomial coeeficients (from reference least square given by matlab)
+
+        double reference_value = poly_coeffs[2]*pow(angle,2) + poly_coeffs[1]*angle + poly_coeffs[0]; //compute the reference value corresponding to the detected angle
+        if(ratio_disp< reference_value)
+        {
+            double disparity = 1 - (ratio_disp/reference_value);
+            double correction_factor = ((exp(disparity)-1)*1.16)*(0.5*log(2*disparity)+0.7);
+            std::cout << "correction_factor : " << correction_factor << std::endl;
+            int8_t signe;
+            if(angle <0)
+                signe = -1;
+            else
+                signe = +1;
+
+            angle += signe*45*correction_factor;
+        }
+    }
+
+
     void get_image(unsigned char* b_image, uint w, uint h, CImg<unsigned char>& cim)
     {
         unsigned char* ptr = b_image;
@@ -426,6 +510,29 @@ public:
                 cim(col,row,0,2) = *(ptr++); // blue
             }
         }
+        display.display(cim);                                                                              //Modified
+    }
+
+    void MatrixToCimg(Matrix<int> &int_matrix, uint w, uint h, CImg<unsigned char>& cim)                        //ADDED !
+    {
+        //int* ptr = int_matrix;
+        std::cout<<"taille matrice : (x:"<<int_matrix.x_size()<<", y:"<< int_matrix.y_size()<<")"<<std::endl;
+        std::cout<<"w="<<w<<", h="<<h<<std::endl;
+
+        for (unsigned int row = 0; row < h; ++row)
+        {
+            for (unsigned int col = 0; col < w; ++col)
+            {
+                // access the viewerImage as column, row
+//                std::cout << "row= "<< row << ", col= " << col << "test" << std::endl;
+//                cim(col,row,0,0) = (unsigned char) temp;
+                cim(col,row,0,0) = (unsigned char)(char(int_matrix(col,row))); // red component
+                //cim(col,row,0,1) = int_matrix(col,row);                         //*(ptr++); // green
+                //cim(col,row,0,2) = int_matrix(col,row);                 //           *(ptr++); // blue
+            }
+        }
+        std::cout<<"test : " << std::endl;
+        std::cout << "int : "<< int_matrix(10,10) <<", char : "<< cim(10,10,0,0) << "conversion : " << char(int_matrix(10,10)) << std::endl;
     }
 
     void get_depth(const Matrix<double>& depth_map, uint w, uint h, CImg<unsigned char>& cim, PointCloud pc, Vector<double> gp)
@@ -454,6 +561,63 @@ public:
                     cim(col,row,0,0) = value; // red component
                     cim(col,row,0,1) = value; // green
                     cim(col,row,0,2) = value; // blue
+                }
+                else
+                {
+                    // access the viewerImage as column, row
+                    cim(col,row,0,0) = 0; // red component
+                    cim(col,row,0,1) = 0; // green
+                    cim(col,row,0,2) = value; // blue
+                }
+                ++i;
+            }
+        }
+    }
+
+    void get_depth(const Matrix<double>& depth_map, uint w, uint h, CImg<unsigned char>& cim, PointCloud pc, Vector<double> gp, Vector<double> pos_on_plane) //Added
+    {
+        double min=depth_map.data()[0];
+        double max=min;
+        for(uint i=1; i<w*h; ++i)
+        {
+            double value = depth_map.data()[i];
+            if(value > max)
+                max=value;
+            if(value < min)
+                min=value;
+        }
+
+        int i=0;
+        for (unsigned int row = 0; row < h; ++row)
+        {
+            for (unsigned int col = 0; col < w; ++col)
+            {
+                unsigned char value = (unsigned char)((depth_map(col,row)-min)*255/(max-min));
+                double d = fabs(pc.X(i)*gp(0)+pc.Y(i)*gp(1)+pc.Z(i)*gp(2)+gp(3));
+                double dp;
+                if(pos_on_plane.getSize() != 0)
+                {
+                    //std::cout << "size gp :" << gp.getSize() << ", size pos_screen : " << pos_on_plane.getSize() << std::endl;
+                    //dp = fabs(pc.X(i)*pos_on_plane(0)+pc.Y(i)*pos_on_plane(1)+pc.Z(i)*pos_on_plane(2)+pos_on_plane(3));
+                    dp = fabs(pc.X(i)*pos_on_plane(0)+pc.Y(i)*pos_on_plane(1));
+                    //std::cout << "dp : " << dp << std::endl;
+                }
+                else
+                    dp = 100;
+
+                if(d>0.1)
+                {
+                    // access the viewerImage as column, row
+                    cim(col,row,0,0) = value; // red component
+                    cim(col,row,0,1) = value; // green
+                    cim(col,row,0,2) = value; // blue
+                }
+                else if (dp < 0.2)
+                {
+                    // access the viewerImage as column, row
+                    cim(col,row,0,0) = 0; // red component
+                    cim(col,row,0,1) = value; // green
+                    cim(col,row,0,2) = 0; // blue
                 }
                 else
                 {
@@ -645,6 +809,98 @@ public:
         }
     }
 
+    void vis_gp_reg(CImg<unsigned char>& cim, const Camera& camera, const Vector<double> pos3D_on_plane)        //Added
+    {
+        double lx = -1.0, ux = 1.0;
+        double lz = 0.5, uz = 8.0;
+        double z2 = uz/4, z3 = uz/2, z4 = uz/4*3;
+        double X[]={lx, lx, 0., 0., ux, ux, lx, ux, lx, ux, lx, ux, lx, ux};
+        double Z[]={lz, uz, lz, uz, lz, uz, uz, uz, z4, z4, z3, z3,  z2,  z2};
+        double c20 = camera.K()(2,0);
+        double c00 = camera.K()(0,0);
+        double c21 = camera.K()(2,1);
+        double c11 = camera.K()(1,1);
+
+        unsigned char color[3] = {255,255,0};
+        unsigned char color_pos[3] = {0,255,0};
+
+        char dis[100];
+        for(int i=0; i<14; ++i)
+        {
+            double Y = (-last_gp(3)-last_gp(0)*X[i]-last_gp(2)*Z[i])/last_gp(1);
+            int x1 = X[i]*c00/Z[i]+c20;
+            int y1 = Y*c11/Z[i]+c21;
+            ++i;
+            Y = (-last_gp(3)-last_gp(0)*X[i]-last_gp(2)*Z[i])/last_gp(1);
+            int x2 = X[i]*c00/Z[i]+c20;
+            int y2 = Y*c11/Z[i]+c21;
+            if(i>6)
+            {
+                sprintf(dis,"%0.1f",Z[i]);
+                cim.draw_text(335,y2-21,dis,color,0,1,20);
+            }
+            cim.draw_line(x1,y1,x2,y2,color);
+        }
+        for (int j=0; j<10; j++)
+        {
+            double Ypos = (-pos3D_on_plane(3)-pos3D_on_plane(0)*X[j]-pos3D_on_plane(2)*Z[j])/pos3D_on_plane(1);
+            int x1pos = X[j]*c00/Z[j]+c20;
+            int y1pos = Ypos*c11/Z[j]+c21;
+            ++j;
+            Ypos = (-pos3D_on_plane(3)-pos3D_on_plane(0)*X[j]-pos3D_on_plane(2)*Z[j])/pos3D_on_plane(1);
+            int x2pos = X[j]*c00/Z[j]+c20;
+            int y2pos = Ypos*c11/Z[j]+c21;
+            if(j>0)
+            {
+                sprintf(dis,"%0.1f",Z[j]);
+                cim.draw_text(335,y2pos-21,dis,color,0,1,20);
+            }
+            cim.draw_line(x1pos,y1pos,x2pos,y2pos,color_pos);
+        }
+    }
+
+    double getOrientation(vector<cv::Point> &pts, cv::Mat &img)
+    {
+        //Construct a buffer used by the pca analysis
+        cv::Mat data_pts = cv::Mat(pts.size(), 2, CV_64FC1);
+        for (int i = 0; i < data_pts.rows; ++i)
+        {
+            data_pts.at<double>(i, 0) = pts[i].x;
+            data_pts.at<double>(i, 1) = pts[i].y;
+        }
+
+        //Perform PCA analysis
+        cv::PCA pca_analysis(data_pts, cv::Mat(), CV_PCA_DATA_AS_ROW);
+
+        //Store the position of the object
+        cv::Point pos = cv::Point(pca_analysis.mean.at<double>(0, 0), pca_analysis.mean.at<double>(0, 1));
+
+        //Store the eigenvalues and eigenvectors
+        vector<cv::Point2d> eigen_vecs(2);
+        vector<double> eigen_val(2);
+        for (int i = 0; i < 2; ++i)
+        {
+            eigen_vecs[i] = cv::Point2d(pca_analysis.eigenvectors.at<double>(i, 0), pca_analysis.eigenvectors.at<double>(i, 1));
+
+            eigen_val[i] = pca_analysis.eigenvalues.at<double>(0, i);
+        }
+
+        //Muliply vectors by a scalar (better visualization)
+        double scalar = 10;
+
+        // Draw the principal components
+        cv::circle(img, pos, 3, CV_RGB(255, 0, 255), 2);
+        cv::line(img, pos, pos + scalar*0.02 * cv::Point(eigen_vecs[0].x * eigen_val[0], eigen_vecs[0].y * eigen_val[0]) , CV_RGB(255, 255, 0));
+        cv::line(img, pos, pos + scalar*0.02 * cv::Point(eigen_vecs[1].x * eigen_val[1], eigen_vecs[1].y * eigen_val[1]) , CV_RGB(0, 255, 255));
+
+//        return atan2(eigen_vecs[0].y, eigen_vecs[0].x)*180/3.14159265;
+        double distance_line1 = sqrt(eigen_val[0]);
+        double distance_line2 = sqrt(eigen_val[1]) ;
+        //return rate distance_line1/distance_line2
+        return distance_line1/distance_line2;
+
+    }
+
     std::string isometryToString(const Eigen::Isometry3d& m)
     {
         char result[80];
@@ -657,7 +913,7 @@ public:
         return std::string(result);
     }
 
-    struct HogParams
+    /*struct HogParams															                                //Modified
     {
         HogParams(DetectionTrackingSystem* obj, int f, unsigned char* img, Camera cam, Vector<Vector<double> >* detected_bb, Vector<Vector < double > >* OutputHOGdet)
         {
@@ -675,7 +931,7 @@ public:
         Camera camera;
         Vector<Vector<double> >* detected_bounding_boxes;
         Vector<Vector < double > >* OutputHOGdetL;
-    };
+    };*/
 
     struct UpperParams
     {
@@ -706,10 +962,20 @@ public:
 
     static void* upper_thread_function(void* params)
     {
+        std::cout<< "entering upper_thread_function" << std::endl;
         UpperParams* upper_params = (struct UpperParams*) params;
         if(upper_params->_this->is_seg)
         {
             upper_params->_this->detector_seg->ProcessFrame(upper_params->camera, *(upper_params->depth_map), *(upper_params->point_cloud), upper_params->_this->upper_body_template, *(upper_params->detected_bounding_boxes));
+            //upper_params->_this->detector_seg->GetROIs(upper_params->camera, *(upper_params->depth_map), labeledMap, *(upper_params->point_cloud));          //ADDED
+            //CImg<unsigned char> cim_labeledROI(labeledMap.x_size(),labeledMap.y_size(),1,3);              //ADDED   w=801 h =601
+            //std::cout << "size of labeledMap : (x=" << labeledMap.x_size() << ",y=" << labeledMap.y_size() << ")." << std::endl;
+            //upper_params->_this->MatrixToCimg(labeledMap,labeledMap.x_size(),labeledMap.y_size(),cim_labeledROI);                          //ADDED
+            //cim_labeledROI.draw_image(cim_labeledROI);
+            //draw_hist(upper_params->_this->upper_body_template,801,601,cim_labeledROI); //PROBLEM !!
+            //display_labeledROIs.display(cim_labeledROI);
+
+
         }
         else
         {
@@ -724,7 +990,7 @@ public:
     void main_process(unsigned char* b_image, float* b_depth, uint w, uint h)
     {
         cpu_time_start = CPUTime();
-        double ct, fovis_time, PC_time, GP_time, detection_time, tracking_time;
+        double ct, fovis_time, PC_time, GP_time, detection_time;             //, tracking_time;																//Modified
 
         // Construct depth_map Matrix
         Matrix<double> depth_map(w,h);
@@ -885,11 +1151,30 @@ public:
         camera = Camera(camera.K(), R, t, gp1);
         GP_time = CPUTime()-ct;
         ////////////////////////////////////////////////////////////////////
-
         ////////////////////////// Visualization Part I/////////////////////
-        //CImg<unsigned char> cim_tmp(w,h,1,3);
-        CImg<unsigned char> cim_final(w,h,1,3);
+        CImg<unsigned char> cim_tmp(w,h,1,3);
+        int i = 0;
+//        pthread_t run_thread;
+//        pthread_create(&run_thread,NULL,run,NULL);                                                                                          //Modified (void *)&run_thread
+        //run();
+
+/////////////////////////////////CHOOSE DISPLAY MODE ///////////////////////////////////////////////:
+         //Change the display mode here (need to implement threads later...)
+        display_mode = ROI_MODE;
+        detector_seg->visualize_roi=true;
+        detector->visualize_roi=true;
+
+//        display_mode = DEPTH_MODE;
+//        detector_seg->visualize_roi=false;
+//        detector->visualize_roi=false;
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        CImg<unsigned char> cim_final(w,h,1,3), cim_labeledROI(w,h,1,3);
         get_image(b_image,w,h,cim_final);
+        //if (labeledMap.x_size()!=0 && labeledMap.y_size()!=0) //added --> if not empty
+            //MatrixToCimg(labeledMap,labeledMap.x_size(),labeledMap.y_size(),cim_labeledROI);                                                               // Added
+        //display_labeledROIs.display(cim_final);                                                                  //ADDED
+        display_labeledROIs.set_title("display_labeledROI");                                                        //ADDED !
 
         if(display_mode == IMAGE_MODE)
         {
@@ -898,6 +1183,7 @@ public:
         else if(display_mode == DEPTH_MODE)
         {
             get_depth(depth_map,w,h,cim_final,point_cloud,last_gp);
+            //get_depth(depth_map,w,h,cim_final,point_cloud,last_gp,pos_screen);
         }
         else if (display_mode == ODOM_MODE)
         {
@@ -908,10 +1194,10 @@ public:
 
         /////////////////////////Detection////////////////////////////////////////////
         Vector<Vector< double > > detected_bounding_boxes1;
-        Vector<Vector < double > > OutputHOGdetL;
+        /*Vector<Vector < double > > OutputHOGdetL;*/															//Modified
         //        cout<<"--------------------------------------"<<endl;
         ct=CPUTime();
-        pthread_t thog,tupp;
+        pthread_t tupp; /*pthread_t thog,tupp;*/															                    //Modified
 
 #ifdef USE_HOG
         if(use_HOG)
@@ -942,23 +1228,381 @@ public:
             oneDet(6) = detected_bounding_boxes(j)(2);
             oneDet(7) = detected_bounding_boxes(j)(3) * 3;
             oneDet(8) = detected_bounding_boxes(j)(5);
-            OutputHOGdetL.pushBack(oneDet);
+            //OutputHOGdetL.pushBack(oneDet);															//Modified
         }
         detected_bounding_boxes.append(detected_bounding_boxes1);
 
         //detected bounding box
 
+        /// Attempt 1 to project content of bounding boxes on the ground
+        // First.. try on first detection
+//        if (detected_bounding_boxes.getSize() != 0)
+//        {
+//            //Vector<double> pos3D;
+//            double distance;
+//            Vector<double> v_bbox1(4);
+//            Vector<double> pos3D;
+//            camera.bbToDetection(detected_bounding_boxes(0),pos3D, Globals::WORLD_SCALE, distance);
+//
+//            //******************************************************
+//            // Project pos on the Ground Plane
+//            //******************************************************
+//            camera.ProjectToGP(pos3D, Globals::WORLD_SCALE, pos3D);
+//
+//            //******************************************************
+//            // Check if x is in front of the camera
+//            //******************************************************
+//            double invWorldScale1 = 1.0/Globals::WORLD_SCALE;
+//            Vector<double> pos3D_worsldScale = pos3D*Globals::WORLD_SCALE;
+//            Vector<double> auxPOS3D = pos3D*invWorldScale1;
+//
+//            //******************************************************
+//            // Projection on Screen
+//            //******************************************************
+//            Vector<double> pos_screen;
+//            camera.WorldToImage(auxPOS3D, Globals::WORLD_SCALE, pos_screen);
+//
+//            //******************************************************
+//            // Given a pos in 2D (image) and the camera par, project this 2D pos to the GP
+//            //******************************************************
+//            Vector<double> gp = camera.get_GP();
+//            pos3D_plane = AncillaryMethods::backprojectGP(pos_screen, camera, gp);
+//
+//            //******************************************************
+//            // test ancillary methods
+//            //******************************************************
+//            pos3D_plane = AncillaryMethods::PlaneToCam(camera);
+//        }
+//        else
+//            pos3D_plane.clearContent();
+//
+//        if(display_mode == DEPTH_MODE)
+//        {
+//            //std::cout << "entered ! size pos3D_plane : " <<pos3D_plane.getSize() <<  std::endl;
+//            //
+//            get_depth(depth_map,w,h,cim_final,point_cloud,last_gp);
+//            get_depth(depth_map,w,h,cim_final,point_cloud,last_gp,pos3D_plane);
+//        }
+        /// End of attempt - not working
+
+        cv::namedWindow( "Display window", CV_WINDOW_NORMAL );// Create a window for display. OpenCV                 // Added
+        //cv::namedWindow( "Display window 2", CV_WINDOW_NORMAL );// Create a window for display. OpenCV                 // Added
+
+        /// Attempt 2 to project content of bounding boxes on the ground --> colorhist
+//        CImg<unsigned char> bb_colhist_image(w,h,1,3);
+//        if (detected_bounding_boxes.getSize() != 0)
+//        {
+//            double distance;
+//            Volume<double> colhist;
+//            Vector<double> pos3D;
+//            Vector<double> v_bbox(4);
+//
+//            //******************************************************
+//            // Get Detection
+//            //******************************************************
+//            int det = camera.bbToDetection(detected_bounding_boxes(0),pos3D, Globals::WORLD_SCALE, distance);
+//            Detections detect(det,0);
+//
+//            //******************************************************
+//            //compute color hist
+//            //******************************************************
+//            v_bbox(0)=detected_bounding_boxes(0)(0);
+//            v_bbox(1)=detected_bounding_boxes(0)(1);
+//            v_bbox(2)=detected_bounding_boxes(0)(2);
+//            v_bbox(3)=detected_bounding_boxes(0)(3)/3;
+//            detect.computeColorHist(colhist, v_bbox, Globals::binSize, bb_colhist_image);
+//            display_labeledROIs.display(bb_colhist_image);
+//        }
+
+        /// End of attempt
+
+        /// Attempt 3 : visualize detected areas
+//        if (detected_bounding_boxes.getSize()!=0)
+//        for (int i = 0; i < detected_bounding_boxes.getSize(); ++i)
+//        {
+//            int cropped_height = (int)(detected_bounding_boxes(i)(3)/2.0);
+//            cropped_height += (detected_bounding_boxes(i)(3));
+//
+//            if( detected_bounding_boxes(i)(1)+cropped_height >= Globals::dImHeight)
+//                cropped_height = Globals::dImHeight - (int)detected_bounding_boxes(i)(1) - 1;
+//
+//            // Cropped and Filter depth_map with respect to distance from camera
+//            int start_column = (int)detected_bounding_boxes(i)(0); // can be negativ !!!!!!!!!!!!!!!!!
+//            int end_column = (int)(detected_bounding_boxes(i)(0) + detected_bounding_boxes(i)(2));
+//            int start_row = (int)max(0.0, detected_bounding_boxes(i)(1));
+//            int end_row = (int)detected_bounding_boxes(i)(1) + cropped_height;
+//
+//            Matrix<double> cropped1(end_column-start_column+1, end_row-start_row+1);
+//            // Set thrtesholds for depth_map
+//            double min_distance_threshold = 0.1;
+//            double max_distance_threshold = 7;
+//            double d_val;
+//            for(int ii = 0, ii_depth = start_column; ii < cropped1.x_size(); ++ii, ++ii_depth) //Extract points satisfying distance conditions
+//            {
+//                for(int jj = 0, jj_depth = start_row; jj < cropped1.y_size(); ++jj, ++jj_depth)
+//                {
+//                    if (ii_depth < depth_map.x_size() && jj_depth < depth_map.y_size() && ii_depth > 0 && jj_depth > 0)
+//                        d_val = depth_map(ii_depth,jj_depth); // Problème ici !!
+//                    else d_val = 8;
+//
+//                    if(d_val <= min_distance_threshold || d_val >= max_distance_threshold)
+//                    {
+//                        cropped1(ii, jj) = 0;
+//                    }
+//                    else
+//                    {
+//                        cropped1(ii, jj) = d_val;
+//                    }
+//                }
+//            }
+//
+//            ////////////// just for test (must be removed)
+//            Matrix<int> roi_image;
+//            roi_image.set_size(w,h);
+//            if(true)
+//            {
+//                for(int tmpx=start_column, tmpxx=0; tmpxx<cropped1.x_size(); ++tmpx,++tmpxx)
+//                {
+//                    for(int tmpy=start_row, tmpyy=0; tmpyy<cropped1.y_size(); ++tmpy,++tmpyy)
+//                    {
+//                        if(tmpyy==0 || tmpyy==cropped1.y_size()-1 || tmpxx==0 || tmpxx==cropped1.x_size()-1) //if on the border of the image
+//                            if (tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+//                                roi_image(tmpx,tmpy)=i+1;
+//
+//                        if(cropped1(tmpxx,tmpyy)!=0 && tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+//                            roi_image(tmpx,tmpy)=i+1;
+//                    }
+//                }
+//                //draw_roi(roi_image, w, h, cim_labeledROI); // --> SEGMENTATION FAULT
+//            }
+//        }
+
+        /// End of attempt 3
+
+        ///Attempt 4 - project detected pc from depth_map
+        Matrix<double> objects_projected;
+        bool get_orientation = true;
+        if(get_orientation)
+        {
+            cim_labeledROI.fill(0);
+            if (detected_bounding_boxes.getSize() != 0)
+            {
+                const unsigned char color[] = {0,255,0};
+                double scale_z_ = Globals::freespace_scaleZ;
+                double scale_x_ = Globals::freespace_scaleX;
+                double min_x_ = Globals::freespace_minX;
+                double min_z_ = Globals::freespace_minZ;
+                double max_x_ = Globals::freespace_maxX;
+                double max_z_ = Globals::freespace_maxZ;
+
+                int x_bins = (int)round((max_x_ - min_x_)*scale_x_)+1;
+                int z_bins = (int)round((max_z_ - min_z_)*scale_z_)+1;
+
+                objects_projected.set_size(x_bins, z_bins);
+                objects_projected.fill(0);
+
+                double step_x = (max_x_ - min_x_)/double(x_bins-1);
+                double step_z = (max_z_ - min_z_)/double(z_bins-1);
+
+                int width = depth_map.x_size();
+                Vector<Vector<double> > vect_pos_angle;
+                Vector<double> vect_ratioXY;
+                double ratioXY=0;
+
+                vect_pos_angle.clearContent();
+                vect_ratioXY.clearContent();
+
+                for(int num_elements=0; num_elements< detector_seg->x_distribution.getSize(); ++num_elements)
+                {
+                    Vector<int> vect_pos_x;
+                    Vector<int> vect_pos_z;
+                    vect_pos_x.clearContent();
+                    vect_pos_z.clearContent();
+                    Vector<double> pos_angle;
+                    pos_angle.clearContent();
+                    int min_posx = 1000;
+                    int min_posz = 1000;
+                    int max_posx = 0;
+                    int max_posz = 0;
+
+                    for(int vector_size = 0; vector_size < (detector_seg->x_distribution(num_elements)).getSize(); ++vector_size)
+                    {
+                        int element_place =  (detector_seg->y_distribution(num_elements)(vector_size)*width) + detector_seg->x_distribution(num_elements)(vector_size);
+                        double zj = point_cloud.Z(element_place);
+                        double xj = point_cloud.X(element_place);
+                        double yj = point_cloud.Y(element_place);
+
+                        double x = xj - min_x_;
+                        double z = zj - min_z_;
+
+                        int pos_x  =(int)round(x/step_x);
+                        int pos_z  =(int)round(z/step_z);
+
+                        vect_pos_x.pushBack(pos_x);
+                        vect_pos_z.pushBack(pos_z);
+
+                        if(pos_x>0 && pos_x < x_bins && pos_z > 0 && pos_z < z_bins)
+                            objects_projected(pos_x, pos_z) = 255;
+
+                        if(vector_size == 0) //Sometimes, the vector may contain nothing --> would result in a seg_fault
+                        {
+                            pos_angle.pushBack(vect_pos_x(0));
+                            pos_angle.pushBack(vect_pos_z(0));
+                        }
+                    }
+
+                    // Suppress this !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//                    char q;
+//                    std::cout << "write this matrix to file ? (yes == y)";
+//                    cin >> q;
+//                    if(q=='y')
+//                    {
+//                        //Calculate barycenter in x and z
+//                        int bar_x = round(vect_pos_x.sum()/vect_pos_x.getSize());
+//                        int bar_z = round(vect_pos_z.sum()/vect_pos_z.getSize());
+//                        //Translation
+//                        Vector<int> vect_Bx(vect_pos_x.getSize(), 15-bar_x);
+//                        Vector<int> vect_Bz(vect_pos_z.getSize(), 10-bar_z);
+//
+//                        Vector<int> translated_vect_x = vect_pos_x;
+//                        translated_vect_x += vect_Bx;
+//                        Vector<int> translated_vect_z = vect_pos_z;
+//                        translated_vect_z += vect_Bz;
+//
+//                        //Create pairs and pushback in list
+//                        std::list<pair<int,int> > list1;
+//                        std::pair<int,int> foo;
+//
+//                        for(int i =0; i<translated_vect_x.getSize(); ++i)
+//                        {
+//                            foo = std::make_pair(translated_vect_x(i), translated_vect_z(i));
+//                            list1.push_back(foo);
+//                        }
+//                        list1.sort();
+//                        list1.unique();
+//                        std::cout << "size of position vectors :" << translated_vect_x.getSize() << ", size of final list : " << list1.size() << std::endl;
+//
+//                        Matrix<int> m1(31,21);
+//                        m1.fill(0);
+//
+//                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
+//                        {
+//                            std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
+//                        }
+//
+//                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
+//                        {
+//                            m1((*it).first, (*it).second) = 1;
+//                        }
+//
+//                        //Print matrix
+//                        for(int i=0; i< m1.y_size(); ++i)
+//                        {
+//                            for(int j=0; j<m1.x_size(); ++j)
+//                                std::cout << m1(j,i) << " ";
+//                            std::cout << "\n";
+//                        }
+//
+//                        m1.WriteToTXTApp("TM_acq_mat1.txt", 1);
+//                    }
+
+                    //////////////////////////////////////////////////////
+
+                    //compute Orientation
+                    int operation = -1;
+                    operation = computeOrientation(vect_pos_x, vect_pos_z, ratioXY);
+                    std::cout << "detection number " << num_elements << ": orientation is " << operation << " degrees" << std::endl;
+                    pos_angle.pushBack(operation);
+                    vect_pos_angle.pushBack(pos_angle);
+                    vect_ratioXY.pushBack(ratioXY);
+                }
+
+                draw_hist(objects_projected, w,h,cim_labeledROI);
+                /// Adding PCA to the image
+                //Prepare Image
+                cv::Mat img_extraite = cv::Mat::zeros(h, w, CV_8UC3); // create Matrix full of 0; warning : size !!
+                cv::Mat pca_image;
+
+                for (int column=0; column < w; column++)
+                {
+                    for (int row=0; row < h; ++row)
+                    {
+//                        img_extraite.at<unsigned char>(column,row) = (cim_final((w-w_img_extrait)/2 + column,row,0,0),cim_final((w-w_img_extrait)/2 + column,row,0,1),cim_final((w-w_img_extrait)/2 + column,row,0,2));
+                        img_extraite.at<cv::Vec3b>(row,column)[0] = (cim_labeledROI(column,row,0,0));
+//                        img_extraite.at<cv::Vec3b>(column,row)[1] = (cim_final(column,row,0,0));
+//                        img_extraite.at<cv::Vec3b>(column,row)[2] = (cim_final(column,row,0,0));
+                    }
+                }
+
+                // PCA Part
+                cv::cvtColor(img_extraite, pca_image, cv::COLOR_BGR2GRAY);  //convert to grayscale image
+                // Process grayscale image and find objects of interest
+                //cv::threshold(pca_image, pca_image, 10, 255, CV_THRESH_BINARY); //apply thresholding
+                vector<vector<cv::Point> > contours;
+                vector<cv::Vec4i> hierarchy;
+                cv::findContours(pca_image,contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+                double rate = 0;
+
+                //Find the orientation of contours
+                for (size_t i = 0; i < contours.size(); ++i)
+                {
+                    // Draw each contour only for visualisation purposes
+                    cv::drawContours(img_extraite, contours, i, CV_RGB(255, 0, 0), 2, 8, hierarchy, 0);
+                    // Find the orientation of each shape
+                    rate = getOrientation(contours[i], img_extraite);
+                }
+                std::cout << "rate : " << rate << std::endl;
+                //cv::waitKey(30);
+
+                for(int num_elements=0; num_elements< detector_seg->x_distribution.getSize(); ++num_elements)
+                {
+                    if(vect_pos_angle(num_elements).getSize() ==3)
+                    {
+                        //correctAngle(vect_pos_angle(num_elements)(2), vect_ratioXY(num_elements));
+                        char buffer[2], buffer2[5], bufferXY[5];
+                        sprintf(buffer,"%f",vect_pos_angle(num_elements)(2)); //angle
+                        sprintf(buffer2,"%f",rate); //ratio eigen values
+                        sprintf(bufferXY,"%f",vect_ratioXY(num_elements)); //Disp
+                        std::cout << "angle : " << buffer << ", disp : " << bufferXY << std::endl;
+                        cv::putText(img_extraite, buffer, cv::Point((vect_pos_angle(num_elements)(0)),(vect_pos_angle(num_elements)(1))),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,0), 3,8);
+                        cv::putText(img_extraite, buffer2, cv::Point((vect_pos_angle(num_elements)(0))+30,(vect_pos_angle(num_elements)(1))+30),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255,255,0), 3,8);
+                        cv::putText(img_extraite, bufferXY, cv::Point((vect_pos_angle(num_elements)(0))+60,(vect_pos_angle(num_elements)(1))+60),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,255), 3,8);
+                        //save data in text file
+                        std::ofstream myfile;
+                        myfile.open("TM_acq_data1.dat", ios::app);
+                        if(myfile.is_open())
+                        {
+                            //myfile << "#x y" << std::endl;
+                            myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
+                            myfile.close();
+                        }
+                        else std::cout << "Unable to open file" << std::endl;
+                    }
+                }
+                cv::imshow( "Display window", img_extraite);
+                cv::waitKey(30);
+                img_extraite.release();
+                /// End PCA
+//                for(int num_elements=0; num_elements< detector_seg->x_distribution.getSize(); ++num_elements)
+//                {
+//                    char buffer[2];
+//                    sprintf(buffer,"%d",int(vect_pos_angle(num_elements)(2)));
+//                    cim_final.draw_text((vect_pos_angle(num_elements)(0)),(vect_pos_angle(num_elements)(1)),buffer,color);
+//                }
+            }
+        }
+        /// End of attempt 4
 
         detection_time = CPUTime()-ct;
         //////////////////////////////////////////////////////////////////////////////
 
-        ///////////////////////////////////////////TRACKING///////////////////////////
+        /*///////////////////////////////////////////TRACKING///////////////////////////																//Modified
         ct=CPUTime();
-        tracker.process_tracking_oneFrame(HyposAll, det_comb, cnt, OutputHOGdetL, cim_final, camera);
+        tracker.process_tracking_oneFrame(HyposAll, det_comb, cnt, OutputHOGdetL, cim_tmp, camera);
         tracking_time = CPUTime()-ct;
-        //////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////*/
 
-        if(HyposAll.getSize() > 0)
+        /*if(HyposAll.getSize() > 0)                                                                            //Modified
         {
             tracking_update_ctr++;
             //std::cout<<" Total tracked hypothesis : "<<HyposAll.getSize()<<
@@ -975,16 +1619,95 @@ public:
         {
             tracking_started = true;
             tracking_update_ctr = 0;
-        }
+        }*/
 
         ////////////////////////// Visualization Part II////////////////////
+        //Matrix<int> roiHist_viewInt;
+        //roiHist_viewInt.set_size(detector_seg->roiInHist_view.x_size(), detector_seg->roiInHist_view.y_size(), detector_seg->roiInHist_view.data());
         if(display_mode == ROI_MODE)
         {
             if(is_seg)
             {
                 draw_roi(detector_seg->roi_image, w,h,cim_final);
-                draw_hist(detector_seg->labeledROIs, w,h,cim_final);
-                //                draw_hist(detector_seg->occ_map, w,h,cim);
+                //draw_hist(detector_seg->labeledROIs, w,h,cim_final);
+
+                /// ****************** Test crop cim_final ******************* //
+//                int w_img_extrait = 100;
+//                int h_img_extrait = 100;
+//                cv::Mat img_extraite = cv::Mat::zeros(w_img_extrait, h_img_extrait, CV_8UC3); // create Matrix full of 0; warning : size !!
+//                cv::Mat img_extraite_rescale = cv::Mat::zeros(h, w, CV_8UC3); //rescaled image for display --> usual size w:640, h:480
+//                cv::Mat pca_image;
+//
+//
+//                for (int column=0; column < w_img_extrait; column++)
+//                {
+//                    for (int row=0; row < h_img_extrait; ++row)
+//                    {
+////                        img_extraite.at<unsigned char>(column,row) = (cim_final((w-w_img_extrait)/2 + column,row,0,0),cim_final((w-w_img_extrait)/2 + column,row,0,1),cim_final((w-w_img_extrait)/2 + column,row,0,2));
+//                        img_extraite.at<cv::Vec3b>(column,row)[0] = (cim_final((w-w_img_extrait)/2 + column,row,0,0));
+//                        img_extraite.at<cv::Vec3b>(column,row)[1] = (cim_final((w-w_img_extrait)/2 + column,row,0,1));
+//                        img_extraite.at<cv::Vec3b>(column,row)[2] = (cim_final((w-w_img_extrait)/2 + column,row,0,2));
+//                    }
+//                }
+//                cv::resize(img_extraite, img_extraite_rescale,img_extraite_rescale.size(), 0, 0, cv::INTER_LINEAR );
+//
+//                    /// PCA part
+//                cv::cvtColor(img_extraite_rescale, pca_image, cv::COLOR_BGR2GRAY);  //convert to grayscale image
+//                // Process grayscale image and find objects of interest
+//                cv::threshold(pca_image, pca_image, 50, 255, CV_THRESH_BINARY); //apply thresholding
+//                vector<vector<cv::Point> > contours;
+//                vector<cv::Vec4i> hierarchy;
+//                cv::findContours(pca_image,contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+//
+//                //Find the orientation of contours
+//                for (size_t i = 0; i < contours.size(); ++i)
+//                {
+//                    // Draw each contour only for visualisation purposes
+//                    cv::drawContours(img_extraite_rescale, contours, i, CV_RGB(255, 0, 0), 2, 8, hierarchy, 0);
+//                    // Find the orientation of each shape
+//                    getOrientation(contours[i], img_extraite_rescale);
+//                }
+//                    ///End of PCA part - WORKING
+//                cv::imshow( "Display window", img_extraite_rescale );
+//                cv::waitKey(30);
+                /// END OF TEST --> COMPLETED
+
+                //draw_hist(detector_seg->occ_map, w,h,cim_final);
+                //Matrix<int> roiInHist_int(detector_seg->roiInHist_view.x_size(),detector_seg->roiInHist_view.y_size(),(int*)detector_seg->roiInHist_view.data());
+                //draw_hist(roiInHist_int, w,h,cim_final);
+               // std::cout << "size roiInHist_int : (" << roiInHist_int.x_size() <<","<< roiInHist_int.y_size() << ")" << std::endl;
+////                for (int i=0; i<detector_seg->roi_reshaped.getSize()-1;i++)
+////                {
+// Start test roi_reshaped_eqt
+//                int i=0;
+//                int x_gen=0;
+//                if (detector_seg->roi_reshaped.getSize() !=0)
+//                {
+//                tmp.set_size(w,h);
+//                    while ((i<detector_seg->roi_reshaped.getSize()) && (i < 4) && (x_gen < w))
+//                    {
+////                        std::cout << "(w:" << w << ",h:" << h << ")" << std::endl;
+////                        std::cout << "(column:" << detector_seg->roi_reshaped(i).y_size() << ",row:" << detector_seg->roi_reshaped(i).x_size() << ")" << std::endl;
+//
+//                        for(int x_part=0;x_part<detector_seg->roi_reshaped(i).x_size();x_part++)
+//                        {
+//                            for(int y_part=0;y_part<detector_seg->roi_reshaped(i).y_size();y_part++)
+//                            {
+//                                detector_seg->roi_image(x_gen,y_part) = (int)detector_seg->roi_reshaped(i)(x_part,y_part);
+//                            }
+//                            x_gen++;
+//
+//                        }
+////                        //std::cout << "enter !!!!!!!!!!!!" << std::endl;
+////                        std::cout << "enter draw_roi" << std::endl;
+////                        draw_roi(tmp,w,h,cim_final);
+//                        x_gen++;
+//                        i++;
+//                    }
+//                    //draw_roi(detector_seg->roi_image,w,h,cim_final);
+//                    std::cout << "done" << std::endl;
+//                }
+// End Test roi_reshaped_eqt
             }
             else
             {
@@ -992,6 +1715,7 @@ public:
                 draw_hist(detector->labeledROIs, w,h,cim_final);
             }
         }
+
 
         ROS_INFO("about to display ");
 
@@ -1005,6 +1729,7 @@ public:
             detList.detectedPersonsList.resize(detected_bounding_boxes.getSize());
 
             //vis_gp(cim_final, camera);
+            //vis_gp_reg(cim_final, camera, pos_screen);
 
             int indx = -1;
             float d = 10.;
@@ -1013,25 +1738,30 @@ public:
             ROS_INFO("Numer of bouding boxes [%d] ", (int)detected_bounding_boxes.getSize());
 
 
-
+#ifdef IROS_EVAL_SECTION
             sprintf(filename, "/home/aamekonn/catkin_ws/tmp/pdt/img%04d.txt", global_frame_counter);
 
             myfile.open(filename, ios::out);
             //global_frame_counter
             myfile<<detected_bounding_boxes.getSize()<<std::endl;
-
+#endif
             for(int jj = 0; jj < detected_bounding_boxes.getSize(); ++jj)
             {
 
                 //push the bounding box onto the message
-                //RenderBBox2D(detected_bounding_boxes(jj), cim_final, 0, 255, 0);
+                RenderBBox2D(detected_bounding_boxes(jj), cim_final, 0, 255, 0);
                 p.position[0] = (int)detected_bounding_boxes(jj)(0);
                 p.position[1] = (int)detected_bounding_boxes(jj)(1);
                 p.position[2] = (int)detected_bounding_boxes(jj)(2);
                 p.position[3] = (int)detected_bounding_boxes(jj)(3);
 
-                myfile<<p.position[0]<<" "<<p.position[1]<<" "<<p.position[2]<<" "<<p.position[3]<<" "<<(1.0/detected_bounding_boxes(jj)(4))<<std::endl;
+//                std::cout << "show data detected_bounding_boxes : " << std::endl;
+//                std::cout << " p.position[0] : " <<  p.position[0] << ",  p.position[1] : " <<  p.position[1] << std::endl;
+//                std::cout << " p.position[2] : " <<  p.position[2] << ",  p.position[3] : " <<  p.position[3] << std::endl;
 
+#ifdef IROS_EVAL_SECTION
+                myfile<<p.position[0]<<" "<<p.position[1]<<" "<<p.position[2]<<" "<<p.position[3]<<" "<<(1.0/detected_bounding_boxes(jj)(4))<<std::endl;
+#endif
                 //p.dist TODO
                 //access this from b_depth
 
@@ -1064,7 +1794,9 @@ public:
                 detList.detectedPersonsList[jj] = p;
             }
 
+#ifdef IROS_EVAL_SECTION
             myfile.close();
+#endif
 
             if(indx != -1)
             {
@@ -1084,15 +1816,14 @@ public:
 
         const unsigned char color[] = {0,255,0};
         const unsigned char bcolor[] = {50,50,50};
-        //cim_tmp.draw_text(10,10, "Tracking",color,0,1,20);
-        //cim_final.draw_text(10,10, "Detection and Tracking",color,0,1,20);
-        //cim_final.draw_image(w,cim_tmp);
+        //cim_tmp.draw_text(10,10, "Tracking",color,0,1,20);                                                          //COMMENT**********************
+        cim_final.draw_text(10,10, "Detection and Tracking",color,0,1,20);
+        cim_final.draw_image(w,cim_tmp);                                                                            // COMMENT !!!!!!!!!!!!!!!!!!!!!!
+        //cim_labeledROI.draw_text(10,10, "visu",color,0,1,20);                                                                   // SUPPRESS !!!!!!!!!!!!!!!!!!!!!!
 
         if(show_help)
             cim_final.draw_text(650,200, help_string, color,bcolor,0.7,20);
         cim_final.draw_text(700,450,"Press F1 for more help!",color,bcolor,0.7,20);
-
-
 
         // Time
         char str[50];
@@ -1132,9 +1863,9 @@ public:
                 sprintf(str,"%d", int(detection_time*1000));
                 cim_final.draw_text(10,275,"Detector",color,bcolor,0.7,20);
                 cim_final.draw_text(170,275,str,color,bcolor,0.7,20);
-                sprintf(str,"%d", int(tracking_time*1000));
+                /*sprintf(str,"%d", int(tracking_time*1000));																//Modified
                 cim_final.draw_text(10,300,"Tracker",color,bcolor,0.7,20);
-                cim_final.draw_text(170,300,str,color,bcolor,0.7,20);
+                cim_final.draw_text(170,300,str,color,bcolor,0.7,20);*/																//Modified
                 // Fovis
                 //                cim1.draw_text(10,100,isometryToString(cam_to_local).c_str(),color,bcolor,0.7,20);
             }
@@ -1166,7 +1897,9 @@ public:
         //convert cim_final to opencv
         unsigned char * src_ptr = (unsigned char*)cim_final.data();
 
+#ifdef IROS_EVAL_SECTION
         unsigned char *tmp = new unsigned char[w*h*3];
+#endif
 
         int channel_sz = h*w;
         for(int i = 0; i < h; i++)
@@ -1174,30 +1907,28 @@ public:
             for(int j = 0; j < w; j++)
             {
                 img_vis.data[(i*w + j)*3 + 0] = src_ptr[ i*w + j + 0*channel_sz]; //r channel
-                tmp[(i*w + j)*3 + 2] = src_ptr[ i*w + j + 0*channel_sz]; //r channel
-
                 img_vis.data[(i*w + j)*3 + 1] = src_ptr[ i*w + j + 1*channel_sz]; //g channel
-                tmp[(i*w + j)*3 + 1] = src_ptr[ i*w + j + 1*channel_sz]; //g channel
-
                 img_vis.data[(i*w + j)*3 + 2] = src_ptr[ i*w + j + 2*channel_sz]; //b channel
+
+#ifdef IROS_EVAL_SECTION
+                tmp[(i*w + j)*3 + 2] = src_ptr[ i*w + j + 0*channel_sz]; //r channel
+                tmp[(i*w + j)*3 + 1] = src_ptr[ i*w + j + 1*channel_sz]; //g channel
                 tmp[(i*w + j)*3 + 0] = src_ptr[ i*w + j + 2*channel_sz]; //b channel
+#endif
             }
         }
         img_vis.header.stamp = ros::Time::now();
 
+#ifdef IROS_EVAL_SECTION
         sprintf(filename, "/home/aamekonn/catkin_ws/tmp/img/img%04d.png", global_frame_counter);
-
         cv::Mat img(h, w, CV_8UC3, tmp);
-
         cv::imwrite(filename, img);
-
         delete [] tmp;
-        /**
-          Save this image here
-          */
-        /////////////////////////////////////////////////////////////////////////
 
         global_frame_counter++;
+#endif
+
+        /////////////////////////////////////////////////////////////////////////
         ++cnt;
 
         dp_queue.push(b_depth);
@@ -1302,14 +2033,32 @@ public:
         }
     }
 
+//    void run ()
+//    {
+//        std::cout<<"...starting grab"<<std::endl;
+//        long int frm = 0;
+//
+//        while(!display.is_closed())
+//        {
+//            std::cout << "Display is open !!" << std::endl;                                             // Modified
+//            check_keys();
+//            sink_frame(frm);
+//        }
+//
+//        while(dp_queue.size()>0)
+//        {
+//            sink_frame(frm,false);
+//        }
+//    }
+
     void run ()
     {
         std::cout<<"...starting grab"<<std::endl;
-
         long int frm = 0;
 
-        while(!display.is_closed())
+        if(!display.is_closed())
         {
+            std::cout << "Display is open !!" << std::endl;                                             // Modified
             check_keys();
             sink_frame(frm);
         }
@@ -1320,8 +2069,11 @@ public:
         }
     }
 
+
     void check_keys()
     {
+        std::cout <<"Checking Keys" << std::endl;                                                               //Modified
+
         if(display.is_keyC())
         {
             capture = true;
@@ -1366,7 +2118,7 @@ public:
                 SetTitle();
             }
         }
-        else if(display.is_keyA())
+        /*else if(display.is_keyA())															//Modified
         {
             use_HOG = true;
             SetTitle();
@@ -1375,7 +2127,7 @@ public:
         {
             use_HOG = false;
             SetTitle();
-        }
+        }*/
         else if(display.is_key1())
         {
             detector_mode = DEPTH_DETECTOR;
@@ -1422,28 +2174,28 @@ public:
         char pattern[] = "Upper Body Detector - %s <without ROI-Segmentation> - %s";
         char patern_seg[] = "Upper Body Detector - %s <with ROI-Segmentation> - %s";
         char* p = is_seg ? patern_seg : pattern;
-        char hog_title[100];
+        /*char hog_title[100];															//Modified
         if(use_HOG)
             sprintf(hog_title,"%s","With groundHOG");
         else
             sprintf(hog_title,"%s","Without groundHOG");
-
+        */
         switch(detector_mode)
         {
         case DEPTH_DETECTOR:
-            sprintf(title,p,"Depth Detector",hog_title);
+            sprintf(title,p,"Depth Detector","Without groundHOG");                            //sprintf(title,p,"Depth Detector",hog_title);
             break;
         case DEPTH_LM_DETECTOR:
-            sprintf(title,p,"Local Max Depth Detector",hog_title);
+            sprintf(title,p,"Local Max Depth Detector","Without groundHOG");                  //sprintf(title,p,"Local Max Depth Detector",hog_title);
             break;
         }
 
-        display.set_title(title);
+        display.set_title("without groundHOG");                                     //display.set_title(title);
     }
 
     void init()
     {
-        use_HOG = Globals::use_hog;
+        //use_HOG = Globals::use_hog;															//Modified
         gp_count_down=0;
         motion_not_valid_count = 0;
         cnt = 0;
@@ -1465,6 +2217,8 @@ public:
                "F5/F6     Start/Stop recording\n"
                "z/x       Show/Hide Statistics\n"
                "F1/F2     Show/Hide Help\n");
+
+        std::cout<<help_string<<std::endl;
 
         ReadUpperBodyTemplate(upper_body_template);
         capture=false;
@@ -1513,17 +2267,17 @@ public:
     const std::vector<double> & getPersonPosition() const   {   return this->position;      }
     std::vector<double> & getServicePosition()   {   return this->servicePosition;      }
     bool is_useful_person_det() {   return this->useful_person_detected;    }
-    bool is_tracking_started()  {   return this->tracking_started;          }
+    /*bool is_tracking_started()  {   return this->tracking_started;          }                                             //Modified
     void set_tracking_started() {   this->tracking_started = true;
                                     this->tracking_update_ctr = 0;          }
 
     int get_tracking_update_ctr()   {   return this->tracking_update_ctr;   }
-    void set_tracking_update_thresh(int th) {   tracking_update_thresh = th;    }
-    void reset_counters()   {
-        tracking_update_ctr = 0;
+    void set_tracking_update_thresh(int th) {   tracking_update_thresh = th;    }*/
+    void reset_counters()   {                                                                                           //Modified
+        //tracking_update_ctr = 0;
         useful_person_detected = false;
-        tracking_started = false;
-        HyposAll.clearContent();
+        //tracking_started = false;
+        //HyposAll.clearContent();
     }
 
     DetectionTrackingSystem() : det_comb(23,0),
@@ -1532,8 +2286,8 @@ public:
     {
         init();
         useful_person_detected = false;
-        tracking_started = false;
-        tracking_update_ctr = 0;
+        //tracking_started = false;
+        //tracking_update_ctr = 0;
         position.resize(3);
         std::cout<<"initialization done!"<<std::endl;
     }
@@ -1569,7 +2323,8 @@ public:
     DepthDetector_Seg depth_detector_seg;
     DepthDetector_LM_Seg depth_detector_lm_seg;
 
-    bool use_HOG;
+
+    /*bool use_HOG;*/															//Modified
 #ifdef USE_HOG
     HOGDetector hog_detector;
 #endif
@@ -1587,15 +2342,16 @@ public:
     bool is_first, is_odom_valid;
     Matrix<double> mm;
 
-    ///////TRACKING///////////////////////////
+    Detections det_comb;																//Modified
+    /*///////TRACKING///////////////////////////																//Modified
     Detections det_comb;
     Tracker tracker;
-    Vector< Hypo > HyposAll;
+    Vector< Hypo > HyposAll;*/
     long int cnt;
 
     //////////////////////////////////////////
     Matrix<double> upper_body_template;
-    CImgDisplay display;
+    CImgDisplay display, display_labeledROIs;            //ADDED display_labeledROIs
     bool capture;
     char capture_path[128];
     char path[128];
@@ -1618,9 +2374,9 @@ public:
     std::vector<double> position;
     std::vector<double> servicePosition;
     bool useful_person_detected;
-    bool tracking_started;
+    /*bool tracking_started;																//Modified
     int tracking_update_ctr;
-    int tracking_update_thresh;
+    int tracking_update_thresh;*/
 };
 
 DetectionTrackingSystem* DetectionTrackingSystem::_this = NULL;
@@ -1932,6 +2688,7 @@ double  cpu_time_start, cpu_time_end;
 
 int main_preload()
 {
+    std::cout << "entering main_preload" << std::endl;
     Vector<Camera> cameras;
     Vector<CImg<unsigned char> > images;
     Vector<Matrix<double> > depth_maps;
@@ -1968,8 +2725,8 @@ int main_preload()
 #endif
 
     GroundPlaneEstimator GPEstimator;
-    Tracker tracker;
-    Vector< Hypo > HyposAll;
+    /*Tracker tracker;																												//Modified
+    Vector< Hypo > HyposAll;*/
     Detections det_comb(23,0);
 
 
@@ -1980,12 +2737,13 @@ int main_preload()
         det_file = new ofstream(Globals::bounding_box_path.c_str());
     }
 
-    CImg<unsigned char> cim_out(Globals::dImWidth*2,Globals::dImHeight,1,3);
+    CImg<unsigned char> cim_out(Globals::dImWidth*2,Globals::dImHeight,1,3); //cim_labeledROI(Globals::dImWidth*2,Globals::dImHeight,1,3);
 
     for(int current_frame = 0; current_frame < Globals::numberFrames; current_frame++)
     {
         int cnt = current_frame+Globals::nOffset;
         if(Globals::verbose){
+            cout << "\33[33;40;1m" << "---------------------------------------------------------------------------------------------------------------" << "\33[0m" << endl;
             cout << "\33[33;40;1m" << "---------------------------------------------------------------------------------------------------------------" << "\33[0m" << endl;
             cout << "\33[33;40;1m" <<"                                  Processing image " << current_frame + Globals::nOffset << "\33[0m"<< endl;
             cout << "\33[33;40;1m" << "---------------------------------------------------------------------------------------------------------------" << "\33[0m" << endl;
@@ -1993,18 +2751,26 @@ int main_preload()
 
         ///////////////////////////////////////////////////////////////////////////
         // main Process
+        std::cout<< "entering main_preload > main_process" << std::endl;
         PointCloud point_cloud(cameras(current_frame), depth_maps(current_frame));
         //        Vector<double> gp = GPEstimator.ComputeGroundPlane(point_cloud);
         Vector<Vector< double > > detected_bounding_boxes;
         if(Globals::use_segmentation_roi)
+        {
             detector_seg->ProcessFrame(cameras(current_frame), depth_maps(current_frame), point_cloud, upper_body_template, detected_bounding_boxes);
+            // For labeled ROIs
+            //Matrix<int> labeledMap;
+            std::cout << "modifying labeledMap" << std::endl;                                                                                     //ADDED
+            detector_seg->GetROIs(cameras(current_frame), depth_maps(current_frame), labeledMap, point_cloud);          //ADDED                                                                       //ADDED
+            //display_labeledROIs.display(labeledROI);                                                                    //ADDED
+        }
         else
             detector->ProcessFrame(cameras(current_frame), depth_maps(current_frame), point_cloud, upper_body_template, detected_bounding_boxes);
         ///////////////////////////////////////////////////////////////////////////
 
         CImg<unsigned char> cnt_image=images(current_frame);
 
-        Vector<Vector < double > > OutputHOGdetL;
+        /*Vector<Vector < double > > OutputHOGdetL;*/															//Modified
 
 #ifdef USE_HOG
         if(Globals::use_hog)
@@ -2017,10 +2783,10 @@ int main_preload()
             detected_bounding_boxes(i)(3) = detected_bounding_boxes(i)(3) *3.0;
         }
 
-        if(Globals::use_hog)
-            detected_bounding_boxes = BboxNMS(detected_bounding_boxes,0.5);
+        /*if(Globals::use_hog)                                                                                                  //Modified
+            detected_bounding_boxes = BboxNMS(detected_bounding_boxes,0.5);*/
 
-        // Tracking ////////////////////////////////////////////////////
+        /*// Tracking ////////////////////////////////////////////////////																//Modified
         Vector<double> oneDet(9);
         for(int j = 0; j < detected_bounding_boxes.getSize(); ++j)
         {
@@ -2033,10 +2799,10 @@ int main_preload()
             oneDet(6) = detected_bounding_boxes(j)(2);
             oneDet(7) = detected_bounding_boxes(j)(3);
             oneDet(8) = detected_bounding_boxes(j)(5);
-            OutputHOGdetL.pushBack(oneDet);
+            //OutputHOGdetL.pushBack(oneDet);																//Modified
         }
 
-        tracker.process_tracking_oneFrame(HyposAll, det_comb, cnt, OutputHOGdetL, cnt_image, cameras(current_frame));
+        tracker.process_tracking_oneFrame(HyposAll, det_comb, cnt, OutputHOGdetL, cnt_image, cameras(current_frame));*/																//Modified
 
         ////////////////////////////////////////////////////////////////
 
@@ -2044,31 +2810,31 @@ int main_preload()
         if(Globals::export_bounding_box)
         {
             // without tracking
-            //            WriteToFile(detected_bounding_boxes,current_frame+Globals::nOffset,*det_file,multiply_by_3);
+            WriteToFile(detected_bounding_boxes,current_frame+Globals::nOffset,*det_file,multiply_by_3);																//Modified
 
-            // with tracking
+            /*// with tracking																																			//Modified
             Vector<Vector<double> > bboxes;
             exportBBOX(tracker.HyposMDL, cameras(current_frame), current_frame, bboxes);
-            WriteToFile(bboxes,current_frame+Globals::nOffset,*det_file,multiply_by_3,false);
+            WriteToFile(bboxes,current_frame+Globals::nOffset,*det_file,multiply_by_3,false);*/
         }
 
         if(Globals::export_result_images)
         {
             //without tracking
-            //            for(int jj = 0; jj < detected_bounding_boxes.getSize(); jj++)
-            //            {
-            //                detected_bounding_boxes(jj)(3)/=3;
-            //                RenderBBox2D(detected_bounding_boxes(jj), images[current_frame], 255, 0, 0);
-            //            }
+            for(int jj = 0; jj < detected_bounding_boxes.getSize(); jj++)
+            {
+                detected_bounding_boxes(jj)(3)/=3;
+                RenderBBox2D(detected_bounding_boxes(jj), images[current_frame], 255, 0, 0);
+            }
 
-            // with tracker
+            /*// with tracker																																//Modified
             Vector<Vector<double> > bboxes;
             exportBBOX(tracker.HyposMDL, cameras(current_frame), current_frame, bboxes);
             for(int jj = 0; jj < bboxes.getSize(); jj++)
             {
                 bboxes(jj)(3)/=3.0;
                 RenderBBox2D(bboxes(jj), images[current_frame], 255, 0, 0);
-            }
+            }*/
 
             char path[128];
             sprintf(path, Globals::result_images_path.c_str(), current_frame + Globals::nOffset);
@@ -2122,8 +2888,8 @@ public:
         b_image_g = new unsigned char[Globals::dImWidth*Globals::dImHeight*3];
         b_depth_g = new float[Globals::dImWidth*Globals::dImHeight];
 
-        match_threshold = 10;
-        tracker_ctr = 0;
+        //match_threshold = 10;																					//Modified
+        //tracker_ctr = 0;																					//Modified
 
         local_data_ready = false;
 
@@ -2245,7 +3011,7 @@ public:
         // publish info to the console for the user
         //ROS_INFO("%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i", action_name_.c_str(), goal->order, feedback_.sequence[0], feedback_.sequence[1]);
         this->start();
-        
+
         // start executing the action
         while(!v.is_tracking_started())
         {
@@ -2327,8 +3093,8 @@ protected:
     float prev_x;
     float prev_y;
 
-    float match_threshold;
-    int tracker_ctr;
+    //float match_threshold;																					//Modified
+    //int tracker_ctr;																					//Modified
 
     riddle::FindPersonFeedback feedback_;
     riddle::FindPersonResult result_;

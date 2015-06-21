@@ -89,6 +89,7 @@ public:
     // if flag is 1 then the matrix dim will be added to the file
     // in the row (y, x)
     void WriteToTXT(const char* filename, const int flag_size=0) const;
+    void WriteToTXTApp(const char* filename, const int flag_size=0) const; //Write to the end of a file
 
     //*******************************************************
     // Inverse
@@ -516,6 +517,27 @@ template <class T> void Matrix<T>::ReadFromTXT(string filename, int x_size, int 
 template <class T> void Matrix<T>::WriteToTXT(const char* filename, const int flag_size) const
 {
     ofstream aStream(filename);
+    if (flag_size==1)
+    {
+        aStream << y_size_ << " " << x_size_ << endl;
+    }
+    else if(flag_size==2)
+    {
+        aStream << y_size_ << " " << endl;
+    }
+
+    for (int i = 0; i < x_size_*y_size_; i++) {
+        if ((i+1)%x_size_ != 0)
+            aStream << data_[i] << " ";
+        else
+            aStream << data_[i] << endl;
+    }
+    aStream.close();
+}
+
+template <class T> void Matrix<T>::WriteToTXTApp(const char* filename, const int flag_size) const
+{
+    ofstream aStream(filename, ios::app);
     if (flag_size==1)
     {
         aStream << y_size_ << " " << x_size_ << endl;

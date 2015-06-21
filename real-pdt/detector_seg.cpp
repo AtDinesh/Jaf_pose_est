@@ -6,6 +6,27 @@ Detector_Seg::Detector_Seg()
 {
 }
 
+void Detector_Seg::GetROIs(const Camera &camera, const Matrix<double> &depth_map, Matrix<int>& occ_map_binary, const PointCloud &point_cloud)          //Added
+{
+    int width = depth_map.x_size();
+    int height = depth_map.y_size();
+
+    Matrix<int> mat_2D_pos_x(width, height, -1);
+    Matrix<int> mat_2D_pos_y(width, height, -1);
+
+    // Compute 2D_positions, and occ_Map matrices
+    ComputeFreespace(camera, occ_map_binary, mat_2D_pos_x, mat_2D_pos_y, point_cloud, occ_map);
+
+    Vector<ROI_SEG> all_ROIs;
+    PreprocessROIs(occ_map_binary, all_ROIs);
+
+    Vector<SegmentedObj> all_objs; //all objects in image
+    SegmentationROI::RunSegmentation(all_objs, occ_map, occ_map_binary, all_ROIs, mat_2D_pos_x, mat_2D_pos_y, point_cloud.X, point_cloud.Y, point_cloud.Z);
+    std::cout << "size all_objs vector : " << all_objs.getSize() << std::endl;
+    std::cout << "size all_ROIs vector : " << all_ROIs.getSize() << std::endl;
+
+}
+
 void Detector_Seg::ProcessFrame(const Camera &camera, const Matrix<double> &depth_map, const PointCloud &point_cloud,
                             const Matrix<double> &upper_body_template, Vector<Vector<double> > &detected_bounding_boxes)
 {
@@ -23,7 +44,8 @@ void Detector_Seg::ProcessFrame(const Camera &camera, const Matrix<double> &dept
     PreprocessROIs(labeledROIs, all_ROIs);
 
     Vector<SegmentedObj> all_objs;
-    SegmentationROI::RunSegmentation(all_objs, occ_map, labeledROIs, all_ROIs, mat_2D_pos_x, mat_2D_pos_y, point_cloud.X, point_cloud.Y, point_cloud.Z);
+    //SegmentationROI::RunSegmentation(all_objs, occ_map, labeledROIs, all_ROIs, mat_2D_pos_x, mat_2D_pos_y, point_cloud.X, point_cloud.Y, point_cloud.Z);
+    SegmentationROI::RunSegmentation(all_objs,roiInHist_view,roi_reshaped, occ_map, labeledROIs, all_ROIs, mat_2D_pos_x, mat_2D_pos_y, point_cloud.X, point_cloud.Y, point_cloud.Z);
 
     Camera camera_origin = AncillaryMethods::GetCameraOrigin(camera);
     Vector<double> plane_in_camera = camera_origin.get_GP();
@@ -52,6 +74,50 @@ void Detector_Seg::ProcessFrame(const Camera &camera, const Matrix<double> &dept
     }
 
     detected_bounding_boxes = EvaluateTemplate(upper_body_template, depth_map, close_range_BBoxes, distances);
+
+//    // Trial to change roi_image to show ground plane with detected upper bodies
+//        //Upper_body positions shall be in  Vector<Vector<double> > max_pos;
+//        Vector<double> pos2D;
+//        Vector<double> pos3D(3);
+//        for (nb_objects = 0;nb_objects < detected_bounding_boxes.getSize(); ++nb_objects)
+//        {
+//            pos2D.pushBack(detected_bounding_boxes(nb_objects)(0)+detected_bounding_boxes(nb_objects)(2)/2.0);
+//            pos2D.pushBack(detected_bounding_boxes(nb_objects)(1)+detected_bounding_boxes(nb_objects)(3)/2.0);
+//            pos2D.pushBack(1);
+//
+//
+//        }
+//    //
+
+//    std::cout << "mat_2D_pos_x.x_size() : " << mat_2D_pos_x.y_size() << std::endl;
+//    std::cout << "mat_2D_pos_x.y_size() : " << mat_2D_pos_x.y_size() << std::endl;
+//    std::cout << "roi_image.x_size() : " << roi_image.x_size() << std::endl;
+//    std::cout << "roi_image.y_size() : " << roi_image.y_size() << std::endl;
+//
+//    for (int i = 0; i < close_range_BBoxes.getSize(); ++i)
+//    {
+//    int cropped_height = (int)(close_range_BBoxes(i)(3)/2.0);
+//    cropped_height += (close_range_BBoxes(i)(3) * Globals::evaluation_inc_height_ratio)/2.0;
+//    int start_column = (int)close_range_BBoxes(i)(0);
+//    int end_column = (int)(close_range_BBoxes(i)(0) + close_range_BBoxes(i)(2));
+//    int start_row = (int)max(0.0, close_range_BBoxes(i)(1));
+//    int end_row = (int)close_range_BBoxes(i)(1) + cropped_height;
+//                //////////////// just for test (must be removed)
+//    if(visualize_roi)
+//    for(int tmpx=start_column, tmpxx=0; tmpxx<mat_2D_pos_x.x_size(); ++tmpx,++tmpxx)
+//    {
+//        for(int tmpy=start_row, tmpyy=0; tmpyy<mat_2D_pos_x.y_size(); ++tmpy,++tmpyy)
+//        {
+//            if(tmpyy==0 || tmpyy==mat_2D_pos_x.y_size()-1 || tmpxx==0 || tmpxx==mat_2D_pos_x.x_size()-1) //if on the border of the image
+//                roi_image(tmpx,tmpy)=i+1;
+//
+//            if(mat_2D_pos_x(tmpxx,tmpyy)!=0)
+//                roi_image(tmpx,tmpy)=i+1;
+//        }
+//    }
+//    }
+
+
 }
 
 void Detector_Seg::ComputeFreespace(const Camera& camera,

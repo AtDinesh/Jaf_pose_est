@@ -16,6 +16,9 @@ public:
     bool visualize_roi;
     Matrix<int> roi_image;
     Matrix<int> labeledROIs;
+    Vector<Vector<Vector<double> > > points_distribution;
+    Vector<Vector<double> > x_distribution;
+    Vector<Vector<double> > dist_distribution;
     ////////////////////////////////////////////////////////////////////////
     // ProcessFrame:
     //      Processes a single frame and detects all upper bodies in a frame.

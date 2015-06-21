@@ -11,6 +11,10 @@ public:
 protected:
     virtual Vector<Vector<double> > EvaluateTemplate(const Matrix<double> &upper_body_template, const Matrix<double> &depth_map,
                                              Vector<Vector<double> > &close_range_BBoxes, Vector<Vector<double> > distances);
+
+//    virtual void detected_visualization( const Matrix<double> &depth_map,
+//                                             Vector<Vector<double> > &detected_BBoxes, Vector<Vector<double> > distances);
+
 };
 
 #endif // DEPTHDETECTOR_SEG_H

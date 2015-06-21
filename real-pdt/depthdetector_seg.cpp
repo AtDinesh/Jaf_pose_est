@@ -1,6 +1,7 @@
 #include "depthdetector_seg.h"
 #include "AncillaryMethods.h"
 
+
 DepthDetector_Seg::DepthDetector_Seg()
 {
 }
@@ -32,7 +33,7 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
     if(visualize_roi)
         roi_image = Matrix<int>(Globals::dImWidth, Globals::dImHeight, 0);
     //////////////////////////////////////////////
-
+    // CHECK EVERY CLOSE_RANGE_BBOXES
     for (int i = 0; i < close_range_BBoxes.getSize(); ++i)
     {
         Vector<Vector<double> > result;
@@ -54,11 +55,11 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
         int end_row = (int)close_range_BBoxes(i)(1) + cropped_height;
 
         Matrix<double> cropped(end_column-start_column+1, end_row-start_row+1);
-
+        // Set thrtesholds for depth_map
         double min_distance_threshold = distances(i)(0)- (distances(i)(1)+0.2)/2.0;
         double max_distance_threshold = distances(i)(0)+ (distances(i)(1)+0.2)/2.0;
         double d_val;
-        for(int ii = 0, ii_depth = start_column; ii < cropped.x_size(); ++ii, ++ii_depth)
+        for(int ii = 0, ii_depth = start_column; ii < cropped.x_size(); ++ii, ++ii_depth) //Extract points satisfying distance conditions
         {
             for(int jj = 0, jj_depth = start_row; jj < cropped.y_size(); ++jj, ++jj_depth)
             {
@@ -76,22 +77,22 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
 
 
         //////////////// just for test (must be removed)
-        if(visualize_roi)
-            for(int tmpx=start_column, tmpxx=0; tmpxx<cropped.x_size(); ++tmpx,++tmpxx)
-            {
-                for(int tmpy=start_row, tmpyy=0; tmpyy<cropped.y_size(); ++tmpy,++tmpyy)
-                {
-                    if(tmpyy==0 || tmpyy==cropped.y_size()-1 || tmpxx==0 || tmpxx==cropped.x_size()-1)
-                        roi_image(tmpx,tmpy)=i+1;
+//        if(visualize_roi)
+//            for(int tmpx=start_column, tmpxx=0; tmpxx<cropped.x_size(); ++tmpx,++tmpxx)
+//            {
+//                for(int tmpy=start_row, tmpyy=0; tmpyy<cropped.y_size(); ++tmpy,++tmpyy)
+//                {
+//                    if(tmpyy==0 || tmpyy==cropped.y_size()-1 || tmpxx==0 || tmpxx==cropped.x_size()-1) //if on the border of the image
+//                        roi_image(tmpx,tmpy)=i+1;
+//
+//                    if(cropped(tmpxx,tmpyy)!=0)
+//                        roi_image(tmpx,tmpy)=i+1;
+//                }
+//            }
+        ////////////////////////////////////////////////// //Visualizing all the ROIs in the image (before Template evaluation
 
-                    if(cropped(tmpxx,tmpyy)!=0)
-                        roi_image(tmpx,tmpy)=i+1;
-                }
-            }
-        //////////////////////////////////////////////////
 
-
-        // Resize Cropped - with respect to template
+        // Resize Cropped - with respect to template --> needed before evaluation (See. Boosting theory)
         double ratio = close_range_BBoxes(i)(3) / (Globals::template_size * 3.0);
         int new_height = (int)(cropped.y_size() * all_scales(nr_scales-1) / ratio);
         int new_width = (int)(cropped.x_size() * all_scales(nr_scales-1) / ratio);
@@ -110,7 +111,7 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
 
         for(int scale_index = 0; scale_index < all_scales.getSize(); ++scale_index)
         {
-            cropped = copy_cropped;
+            cropped = copy_cropped; //just to scale from the initial image
 
             // Resize Cropped in loop with different scales
             int xSizeCropped = (int)(cropped.x_size() / all_scales(scale_index));
@@ -148,7 +149,7 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
 
                     if(median == 0)
                     {
-                        resulted_distances(xxx,yyy) = 1000;
+                        resulted_distances(xxx,yyy) = 1000; //no need of mormalization
                         continue;
                     }
 
@@ -178,9 +179,29 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
                         resulted_distances(xxx,yyy) = 1000;
                     }
                 }
-            }
+            } //Templates evaluated !!!
 
-            Vector<Vector<double> > max_pos;
+//            std::cout << "cropped.x_size() : " << cropped.x_size() << std::endl;
+//            std::cout << "cropped.y_size() : " << cropped.y_size() << std::endl;
+//            std::cout << "roi_image.x_size() : " << roi_image.x_size() << std::endl;
+//            std::cout << "roi_image.y_size() : " << roi_image.y_size() << std::endl;
+
+            //////////////// just for test (must be removed)
+//            if(visualize_roi)
+//            for(int tmpx=start_column, tmpxx=0; tmpxx<cropped.x_size(); ++tmpx,++tmpxx)
+//            {
+//                for(int tmpy=start_row, tmpyy=0; tmpyy<cropped.y_size(); ++tmpy,++tmpyy)
+//                {
+//                    if(tmpyy==0 || tmpyy==cropped.y_size()-1 || tmpxx==0 || tmpxx==cropped.x_size()-1) //if on the border of the image
+//                        roi_image(tmpx,tmpy)=i+1;
+//
+//                    if(cropped(tmpxx,tmpyy)!=0)
+//                        roi_image(tmpx,tmpy)=i+1;
+//                }
+//            }
+            //////////////////
+
+            Vector<Vector<double> > max_pos; //search for local maxima
             AncillaryMethods::NonMinSuppression2d(resulted_distances, max_pos, Globals::evaluation_NMS_threshold);
 
             int n_xSizeTemp = (int)(Globals::template_size*ratio/all_scales(scale_index));
@@ -202,5 +223,192 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
         AncillaryMethods::GreedyNonMaxSuppression(result, Globals::evaluation_greedy_NMS_overlap_threshold, Globals::evaluation_greedy_NMS_threshold, upper_body_template, final_result);
     }
 
+
+    /// To just vidualize final detections - comment if not needed
+    // CHECK EVERY DETECTED_BBOXES
+
+    if (final_result.getSize()!=0)
+    {
+        // first, initialize size of variables
+        //points_distribution.clearContent();
+        //points_distribution.setSize(final_result.getSize());
+        //Vector<double> point_coordinates;
+        //point_coordinates.setSize(2);
+        x_distribution.clearContent();
+        x_distribution.setSize(final_result.getSize());
+        y_distribution.clearContent();
+        y_distribution.setSize(final_result.getSize());
+        dist_distribution.clearContent();
+        dist_distribution.setSize(final_result.getSize());
+
+        // working on every bbox of final_result
+        for (int i = 0; i < final_result.getSize(); ++i)
+        {
+
+            ///to get the head + body:
+//             int cropped_height = (int)(final_result(i)(3)/2.0);
+//            cropped_height += (final_result(i)(3));//* Globals::evaluation_inc_height_ratio;
+//            //final_result(i)(1) -= (final_result(i)(3) * Globals::evaluation_inc_height_ratio)/2.0;
+//
+//            if( final_result(i)(1)+cropped_height >= Globals::dImHeight)
+//                cropped_height = Globals::dImHeight - (int)final_result(i)(1) - 1;
+
+            ///Suppress the head
+            int cropped_height = (int)(final_result(i)(3)/2);
+            //cropped_height += (final_result(i)(3));//* Globals::evaluation_inc_height_ratio;
+            //final_result(i)(1) -= (final_result(i)(3) * Globals::evaluation_inc_height_ratio)/2.0;
+
+            //Change start row not to have the head !
+            int remove_height = (int)(final_result(i)(3)/2);
+            final_result(i)(1) += remove_height;
+
+            if( final_result(i)(1)+cropped_height >= Globals::dImHeight)
+                cropped_height = Globals::dImHeight - (int)final_result(i)(1) - 1;
+
+            if(Globals::verbose)
+                cout << "(distances(i) " << distances(i)(0) << " radius " << distances(i)(1)/2.0 << endl;
+
+            // Cropped and Filter depth_map with respect to distance from camera
+            int start_column = (int)final_result(i)(0); // can be negativ !!!!!!!!!!!!!!!!!
+            int end_column = (int)(final_result(i)(0) + final_result(i)(2));
+            int start_row = (int)max(0.0, final_result(i)(1));
+            int end_row = (int)final_result(i)(1) + cropped_height;
+
+            Matrix<double> cropped1(end_column-start_column+1, end_row-start_row+1);
+            // Set thrtesholds for depth_map
+            double min_distance_threshold = distances(i)(0)- (distances(i)(1)+0.2)/3.0; //was 0.2, changed to 0.005
+            double max_distance_threshold = distances(i)(0)+ (distances(i)(1)+0.2)/2.0; //was 0.2, changed to 0.5
+            double d_val;
+
+
+            for(int ii = 0, ii_depth = start_column; ii < cropped1.x_size(); ++ii, ++ii_depth) //Extract points satisfying distance conditions
+            {
+                for(int jj = 0, jj_depth = start_row; jj < cropped1.y_size(); ++jj, ++jj_depth)
+                {
+                    if (ii_depth < depth_map.x_size() && jj_depth < depth_map.y_size() && ii_depth > 0 && jj_depth > 0)
+                    {
+                        d_val = depth_map(ii_depth,jj_depth); // Problème ici !!
+                    }
+                    else d_val = distances(i)(0);
+
+                    if(d_val <= min_distance_threshold || d_val >= max_distance_threshold)
+                    {
+                        cropped1(ii, jj) = 0;
+                    }
+                    else
+                    {
+                        cropped1(ii, jj) = d_val;   //for cropped image -> vizualisation
+                        // pushBack data in variables for PCA
+                        x_distribution(i).pushBack(ii_depth);
+                        y_distribution(i).pushBack(jj_depth);
+                        dist_distribution(i).pushBack(d_val*20); //ATTENTION !!
+                    }
+                }
+            }
+
+//        ////////////// just for test (must be removed)
+            if(visualize_roi)
+                for(int tmpx=start_column, tmpxx=0; tmpxx<cropped1.x_size(); ++tmpx,++tmpxx)
+                {
+                    for(int tmpy=start_row, tmpyy=0; tmpyy<cropped1.y_size(); ++tmpy,++tmpyy)
+                    {
+                        if(tmpyy==0 || tmpyy==cropped1.y_size()-1 || tmpxx==0 || tmpxx==cropped1.x_size()-1) //if on the border of the image
+                            if (tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+                                roi_image(tmpx,tmpy)=i+1;
+
+                        if(cropped1(tmpxx,tmpyy)!=0 && tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+                            roi_image(tmpx,tmpy)=i+1;
+                    }
+                }
+        }
+    }
+    /// end of vizualisation - WORKING !!
+
     return final_result;
 }
+
+//void  DepthDetector_Seg::detected_visualization( const Matrix<double> &depth_map,
+//                                             Vector<Vector<double> > &detected_BBoxes, Vector<Vector<double> > distances)
+//{
+//    int stride = Globals::evaluation_stride;
+//    int nr_scales = Globals::evaluation_nr_scales;
+//    int inc_cropped_height = Globals::evaluation_inc_cropped_height;
+//
+//    // performance helper variables: just for avoiding recalculation
+//    int int_half_template_size = Globals::template_size / 2;
+//    double double_half_template_size = Globals::template_size / 2.0;
+//
+//    Vector<Vector<double> > final_result;
+//
+//    // generate the scales
+//    Vector<double> all_scales(nr_scales, 1.0);
+//    all_scales(0) = 1;
+//    for(int sc = 1; sc < nr_scales; ++sc)
+//    {
+//        all_scales(sc) = pow(Globals::evaluation_scale_stride,sc);
+//    }
+//
+//    //////////////////////////////////////////////
+//    //    Matrix<double> roi_image(Globals::dImWidth, Globals::dImHeight, 0.0);
+//    if(visualize_roi)
+//        roi_image = Matrix<int>(Globals::dImWidth, Globals::dImHeight, 0);
+//    //////////////////////////////////////////////
+//    // CHECK EVERY DETECTED_BBOXES
+//    for (int i = 0; i < detected_BBoxes.getSize(); ++i)
+//    {
+//        Vector<Vector<double> > result;
+//
+//        int cropped_height = (int)(detected_BBoxes(i)(3)/2.0);
+//        cropped_height += (detected_BBoxes(i)(3) * Globals::evaluation_inc_height_ratio)/2.0;
+//        detected_BBoxes(i)(1) -= (detected_BBoxes(i)(3) * Globals::evaluation_inc_height_ratio)/2.0;
+//
+//        if( detected_BBoxes(i)(1)+cropped_height >= Globals::dImHeight)
+//            cropped_height = Globals::dImHeight - (int)detected_BBoxes(i)(1) - 1;
+//
+//        if(Globals::verbose)
+//            cout << "(distances(i) " << distances(i)(0) << " radius " << distances(i)(1)/2.0 << endl;
+//
+//        // Cropped and Filter depth_map with respect to distance from camera
+//        int start_column = (int)detected_BBoxes(i)(0);
+//        int end_column = (int)(detected_BBoxes(i)(0) + detected_BBoxes(i)(2));
+//        int start_row = (int)max(0.0, detected_BBoxes(i)(1));
+//        int end_row = (int)detected_BBoxes(i)(1) + cropped_height;
+//
+//        Matrix<double> cropped(end_column-start_column+1, end_row-start_row+1);
+//        // Set thrtesholds for depth_map
+//        double min_distance_threshold = distances(i)(0)- (distances(i)(1)+0.2)/2.0;
+//        double max_distance_threshold = distances(i)(0)+ (distances(i)(1)+0.2)/2.0;
+//        double d_val;
+//        for(int ii = 0, ii_depth = start_column; ii < cropped.x_size(); ++ii, ++ii_depth) //Extract points satisfying distance conditions
+//        {
+//            for(int jj = 0, jj_depth = start_row; jj < cropped.y_size(); ++jj, ++jj_depth)
+//            {
+//                d_val = depth_map(ii_depth,jj_depth);
+//                if(d_val <= min_distance_threshold || d_val >= max_distance_threshold)
+//                {
+//                    cropped(ii, jj) = 0;
+//                }
+//                else
+//                {
+//                    cropped(ii, jj) = d_val;
+//                }
+//            }
+//        }
+//
+//
+//        ////////////// just for test (must be removed)
+//        if(visualize_roi)
+//            for(int tmpx=start_column, tmpxx=0; tmpxx<cropped.x_size(); ++tmpx,++tmpxx)
+//            {
+//                for(int tmpy=start_row, tmpyy=0; tmpyy<cropped.y_size(); ++tmpy,++tmpyy)
+//                {
+//                    if(tmpyy==0 || tmpyy==cropped.y_size()-1 || tmpxx==0 || tmpxx==cropped.x_size()-1) //if on the border of the image
+//                        roi_image(tmpx,tmpy)=i+1;
+//
+//                    if(cropped(tmpxx,tmpyy)!=0)
+//                        roi_image(tmpx,tmpy)=i+1;
+//                }
+//            }
+//        //////////////////////////////////////////////// //Visualizing all the ROIs in the image (before Template evaluation
+//    }
+//}

@@ -18,6 +18,14 @@ public:
     Matrix<int> roi_image;
     Matrix<int> labeledROIs;
     Matrix<double> occ_map;
+    //Vector<Vector<Vector<double> > > points_distribution;
+    Vector<Vector<double> > x_distribution;
+    Vector<Vector<double> > y_distribution; //to try to projet pc from depth_map
+    Vector<Vector<double> > dist_distribution;
+
+    //Added
+    Matrix<int> roiInHist_view;
+    Vector<Matrix<int> > roi_reshaped;
     ////////////////////////////////////////////////////////////////////////
     // ProcessFrame:
     //      Processes a single frame and detects all upper bodies in a frame.
@@ -33,6 +41,20 @@ public:
     ////////////////////////////////////////////////////////////////////////
     void ProcessFrame(const Camera& camera, const Matrix<double>& depth_map, const PointCloud& point_cloud,
                       const Matrix<double>& upper_body_template, Vector<Vector<double> >& detected_bounding_boxes);
+
+    ////////////////////////////////////////////////////////////////////////
+    // GetRois
+    //      Computes ROIs. This is used to get the labeled ROIs
+    //
+    // parameters:
+    //      input:
+    //          camera                -   Camera settings related to the frame.
+    //          depth_map             -   Depth map image of the frame.
+    //      output:
+    //          occ_map_binary        -   binary occ_map (LabeledRois)
+    ///////////////////////////////////////////////////////////////////////
+    void GetROIs(const Camera &camera, const Matrix<double> &depth_map, Matrix<int>& occ_map_binary, const PointCloud &point_cloud);     //Added
+
 
 protected:
     ///////////////////////////////////////////////////////////////////////
@@ -50,6 +72,7 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual Vector<Vector<double> > EvaluateTemplate(const Matrix<double> &upper_body_template, const Matrix<double> &depth_map,
                                              Vector<Vector<double> > &close_range_BBoxes, Vector<Vector<double> > distances) = 0;
+
 private:
     void ComputeFreespace(const Camera &camera, Matrix<int> &occ_map_binary,
                           Matrix<int> &mat_2D_pos_x, Matrix<int> &mat_2D_pos_y, const PointCloud& point_cloud, Matrix<double> &occ_map);

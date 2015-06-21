@@ -1,7 +1,7 @@
 include_directories(
- /usr/include/ni # for OpenNI
- "${CMAKE_CURRENT_SOURCE_DIR}/include/pocketsphinx" # for pocketsphinx
- "${CMAKE_CURRENT_SOURCE_DIR}/include/sphinxbase" # for sphinxbase
+ #/usr/include/ni # for OpenNI
+ #"${CMAKE_CURRENT_SOURCE_DIR}/include/pocketsphinx" # for pocketsphinx
+ #"${CMAKE_CURRENT_SOURCE_DIR}/include/sphinxbase" # for sphinxbase
   "${CMAKE_CURRENT_SOURCE_DIR}/src/real-pdt/" 
   include ${OpenCV_INCLUDE_DIRS} ${amppl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${freenect_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${USB_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
 "${CMAKE_CURRENT_SOURCE_DIR}/include/"
