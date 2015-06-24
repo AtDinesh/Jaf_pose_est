@@ -859,7 +859,7 @@ public:
         }
     }
 
-    double getOrientation(vector<cv::Point> &pts, cv::Mat &img)
+    double getOrientation(vector<cv::Point> &pts, cv::Mat &img, double& eigenval0, double& eigenval1)
     {
         //Construct a buffer used by the pca analysis
         cv::Mat data_pts = cv::Mat(pts.size(), 2, CV_64FC1);
@@ -896,6 +896,9 @@ public:
 //        return atan2(eigen_vecs[0].y, eigen_vecs[0].x)*180/3.14159265;
         double distance_line1 = sqrt(eigen_val[0]);
         double distance_line2 = sqrt(eigen_val[1]) ;
+
+        eigenval0 = eigen_val[0];
+        eigenval1 = eigen_val[1];
         //return rate distance_line1/distance_line2
         return distance_line1/distance_line2;
 
@@ -1412,6 +1415,8 @@ public:
                 vect_pos_angle.clearContent();
                 vect_ratioXY.clearContent();
 
+                unsigned int taille_ellipse = 0; //For data acquisition
+
                 for(int num_elements=0; num_elements< detector_seg->x_distribution.getSize(); ++num_elements)
                 {
                     Vector<int> vect_pos_x;
@@ -1452,49 +1457,51 @@ public:
                     }
 
                     // Suppress this !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//                    char q;
-//                    std::cout << "write this matrix to file ? (yes == y)";
-//                    cin >> q;
-//                    if(q=='y')
-//                    {
-//                        //Calculate barycenter in x and z
-//                        int bar_x = round(vect_pos_x.sum()/vect_pos_x.getSize());
-//                        int bar_z = round(vect_pos_z.sum()/vect_pos_z.getSize());
-//                        //Translation
-//                        Vector<int> vect_Bx(vect_pos_x.getSize(), 15-bar_x);
-//                        Vector<int> vect_Bz(vect_pos_z.getSize(), 10-bar_z);
-//
-//                        Vector<int> translated_vect_x = vect_pos_x;
-//                        translated_vect_x += vect_Bx;
-//                        Vector<int> translated_vect_z = vect_pos_z;
-//                        translated_vect_z += vect_Bz;
-//
-//                        //Create pairs and pushback in list
-//                        std::list<pair<int,int> > list1;
-//                        std::pair<int,int> foo;
-//
-//                        for(int i =0; i<translated_vect_x.getSize(); ++i)
-//                        {
-//                            foo = std::make_pair(translated_vect_x(i), translated_vect_z(i));
-//                            list1.push_back(foo);
-//                        }
-//                        list1.sort();
-//                        list1.unique();
-//                        std::cout << "size of position vectors :" << translated_vect_x.getSize() << ", size of final list : " << list1.size() << std::endl;
-//
-//                        Matrix<int> m1(31,21);
-//                        m1.fill(0);
-//
-//                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
-//                        {
-//                            std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
-//                        }
-//
-//                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
-//                        {
-//                            m1((*it).first, (*it).second) = 1;
-//                        }
-//
+                    unsigned int taille_ellipse = 0;
+                    char q;
+                    std::cout << "write this matrix to file ? (yes == y)";
+                    cin >> q;
+                    if(q=='y')
+                    {
+                        //Calculate barycenter in x and z
+                        int bar_x = round(vect_pos_x.sum()/vect_pos_x.getSize());
+                        int bar_z = round(vect_pos_z.sum()/vect_pos_z.getSize());
+                        //Translation
+                        Vector<int> vect_Bx(vect_pos_x.getSize(), 15-bar_x);
+                        Vector<int> vect_Bz(vect_pos_z.getSize(), 10-bar_z);
+
+                        Vector<int> translated_vect_x = vect_pos_x;
+                        translated_vect_x += vect_Bx;
+                        Vector<int> translated_vect_z = vect_pos_z;
+                        translated_vect_z += vect_Bz;
+
+                        //Create pairs and pushback in list
+                        std::list<pair<int,int> > list1;
+                        std::pair<int,int> foo;
+
+                        for(int i =0; i<translated_vect_x.getSize(); ++i)
+                        {
+                            foo = std::make_pair(translated_vect_x(i), translated_vect_z(i));
+                            list1.push_back(foo);
+                        }
+                        list1.sort();
+                        list1.unique();
+                        std::cout << "size of position vectors :" << translated_vect_x.getSize() << ", size of final list : " << list1.size() << std::endl;
+
+                        Matrix<int> m1(31,21);
+                        m1.fill(0);
+
+                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
+                        {
+                            std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
+                        }
+
+                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
+                        {
+                            m1((*it).first, (*it).second) = 1;
+                        }
+                        taille_ellipse = list1.size();
+
 //                        //Print matrix
 //                        for(int i=0; i< m1.y_size(); ++i)
 //                        {
@@ -1503,8 +1510,24 @@ public:
 //                            std::cout << "\n";
 //                        }
 //
-//                        m1.WriteToTXTApp("TM_acq_mat1.txt", 1);
-//                    }
+//                        std::cout << "0 --> 45n,   1 --> 0,   2 --> 45p,   3--> 90 ,   default --> 0" << std::endl;
+//                        int reply;
+//                        std::cin >> reply;
+//
+//                        switch(reply)
+//                        {
+//                            case 0: m1.WriteToTXTApp("allFeaturesTr_mat45n.txt", 1);
+//                                break;
+//                            case 1: m1.WriteToTXTApp("allFeaturesTr_mat0.txt", 1);
+//                                break;
+//                            case 2: m1.WriteToTXTApp("allFeaturesTr_mat45p.txt", 1);
+//                                break;
+//                            case 3: m1.WriteToTXTApp("allFeaturesTr_mat90.txt", 1);
+//                                break;
+//                            default: m1.WriteToTXTApp("allFeaturesTr_mat0.txt", 1);
+//                                break;
+//                        }
+                    }
 
                     //////////////////////////////////////////////////////
 
@@ -1542,6 +1565,8 @@ public:
                 vector<cv::Vec4i> hierarchy;
                 cv::findContours(pca_image,contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
                 double rate = 0;
+                double eigenval0 = 0;
+                double eigenval1 = 0;
 
                 //Find the orientation of contours
                 for (size_t i = 0; i < contours.size(); ++i)
@@ -1549,35 +1574,60 @@ public:
                     // Draw each contour only for visualisation purposes
                     cv::drawContours(img_extraite, contours, i, CV_RGB(255, 0, 0), 2, 8, hierarchy, 0);
                     // Find the orientation of each shape
-                    rate = getOrientation(contours[i], img_extraite);
+                    rate = getOrientation(contours[i], img_extraite, eigenval0, eigenval1);
                 }
                 std::cout << "rate : " << rate << std::endl;
                 //cv::waitKey(30);
-
+                char a;
+                cin >> a;
+                if(a=='y') {
                 for(int num_elements=0; num_elements< detector_seg->x_distribution.getSize(); ++num_elements)
                 {
                     if(vect_pos_angle(num_elements).getSize() ==3)
                     {
                         //correctAngle(vect_pos_angle(num_elements)(2), vect_ratioXY(num_elements));
-                        char buffer[2], buffer2[5], bufferXY[5];
+                        char buffer[2], buffer2[5], bufferXY[5], bufferv0[5], bufferv1[5], buffersize[2];
                         sprintf(buffer,"%f",vect_pos_angle(num_elements)(2)); //angle
                         sprintf(buffer2,"%f",rate); //ratio eigen values
-                        sprintf(bufferXY,"%f",vect_ratioXY(num_elements)); //Disp
+                        sprintf(bufferXY,"%f",vect_ratioXY(num_elements)); //variance
+                        sprintf(bufferv0,"%f", eigenval0);
+                        sprintf(bufferv1,"%f", eigenval0);
+                        sprintf(buffersize,"%d", taille_ellipse);
                         std::cout << "angle : " << buffer << ", disp : " << bufferXY << std::endl;
                         cv::putText(img_extraite, buffer, cv::Point((vect_pos_angle(num_elements)(0)),(vect_pos_angle(num_elements)(1))),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,0), 3,8);
                         cv::putText(img_extraite, buffer2, cv::Point((vect_pos_angle(num_elements)(0))+30,(vect_pos_angle(num_elements)(1))+30),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255,255,0), 3,8);
                         cv::putText(img_extraite, bufferXY, cv::Point((vect_pos_angle(num_elements)(0))+60,(vect_pos_angle(num_elements)(1))+60),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,255), 3,8);
                         //save data in text file
+                        std::cout << "0 --> 45n,   1 --> 0,   2 --> 45p,   3--> 90 ,   default --> 0" << std::endl;
                         std::ofstream myfile;
-                        myfile.open("TM_acq_data1.dat", ios::app);
+
+                        int reply;
+                        std::cin >> reply;
+
+                        switch(reply)
+                        {
+                            case 0: myfile.open("allFeaturesTr_45n.csv", ios::app);
+                                break;
+                            case 1: myfile.open("allFeaturesTr_0.csv", ios::app);
+                                break;
+                            case 2: myfile.open("allFeaturesTr_45p.csv", ios::app);
+                                break;
+                            case 3: myfile.open("allFeaturesTr_90.csv", ios::app);
+                                break;
+                            default: myfile.open("allFeaturesTr_0.csv", ios::app);
+                                break;
+                        }
+                        //myfile.open("allFeaturesTr.csv", ios::app);
                         if(myfile.is_open())
                         {
                             //myfile << "#x y" << std::endl;
-                            myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
+                            //myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
+                            myfile << buffer << ";" << buffer2 << ";" << bufferXY << ";" << bufferv0 << ";" << bufferv1 << std::endl;
                             myfile.close();
                         }
                         else std::cout << "Unable to open file" << std::endl;
                     }
+                }
                 }
                 cv::imshow( "Display window", img_extraite);
                 cv::waitKey(30);
