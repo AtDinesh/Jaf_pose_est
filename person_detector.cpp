@@ -1591,7 +1591,7 @@ public:
                         sprintf(buffer2,"%f",rate); //ratio eigen values
                         sprintf(bufferXY,"%f",vect_ratioXY(num_elements)); //variance
                         sprintf(bufferv0,"%f", eigenval0);
-                        sprintf(bufferv1,"%f", eigenval0);
+                        sprintf(bufferv1,"%f", eigenval1);
                         sprintf(buffersize,"%d", taille_ellipse);
                         std::cout << "angle : " << buffer << ", disp : " << bufferXY << std::endl;
                         cv::putText(img_extraite, buffer, cv::Point((vect_pos_angle(num_elements)(0)),(vect_pos_angle(num_elements)(1))),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,0), 3,8);
@@ -1622,7 +1622,7 @@ public:
                         {
                             //myfile << "#x y" << std::endl;
                             //myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
-                            myfile << buffer << ";" << buffer2 << ";" << bufferXY << ";" << bufferv0 << ";" << bufferv1 << std::endl;
+                            myfile << buffer << ";" << buffer2 << ";" << bufferXY << ";" << bufferv0 << ";" << bufferv1 << ";" << buffersize << std::endl;
                             myfile.close();
                         }
                         else std::cout << "Unable to open file" << std::endl;
