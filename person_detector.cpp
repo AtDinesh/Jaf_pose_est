@@ -2890,7 +2890,7 @@ public:
         _depth_image_sub = it_.subscribe(_depth_image_topic, 1, &KinectPersonDetector::depthMapReader, this, hints2);
 
         _img_res_pub = it_.advertise("/kinect_person_detector/image", 1);
-        _people_list_pub = _nh.advertise<realpdt::DetectedPersonsList>("/kinect_person_detector/detected_people", 1);
+        _people_list_pub = _nh.advertise<riddle::DetectedPersonsList>("/kinect_person_detector/detected_people", 1);
 
 
         DetectionTrackingSystem::_this = &this->v;
@@ -2898,8 +2898,8 @@ public:
         b_image_g = new unsigned char[Globals::dImWidth*Globals::dImHeight*3];
         b_depth_g = new float[Globals::dImWidth*Globals::dImHeight];
 
-        match_threshold = 10;
-        tracker_ctr = 0;
+        //match_threshold = 10;
+        //tracker_ctr = 0;
 
         local_data_ready = false;
 
