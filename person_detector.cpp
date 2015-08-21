@@ -2865,22 +2865,32 @@ namespace riddle {
 class KinectPersonDetector {
 
 public:
+
+    /// uncomment this KinectPersonDetector() to use compressed bag files and comment the next one
     KinectPersonDetector()
-        :it_(_nh),_rgb_image_topic("color_image"), _depth_image_topic("depth_image")
+        :it_(_nh),_rgb_image_topic("/camera/rgb/image_color"), _depth_image_topic("/camera/depth_registered/image_raw")
         //as_(_nh, "find_person", boost::bind(&KinectPersonDetector::executeFindPerson, this, _1), false),
         //action_name_("find_person")
     {
 
+        //ros::NodeHandle local_nh("~");
+
+        std::string transport;// = "compressed";
+        //local_nh.param("image_transport", transport, std::string("raw"));
+        std::cout<<" transport = "<<transport<<std::endl;
+        image_transport::TransportHints hints("compressed", ros::TransportHints(), _nh);
+
         //subsribe to the topics
-        _rgb_image_sub = it_.subscribe(_rgb_image_topic, 1,
-                                       &KinectPersonDetector::rgbImageReader, this);
+        _rgb_image_sub = it_.subscribe(_rgb_image_topic, 1, &KinectPersonDetector::rgbImageReader, this, hints);
 
 
-        _depth_image_sub = it_.subscribe(_depth_image_topic, 1,
-                                         &KinectPersonDetector::depthMapReader, this);
+        image_transport::TransportHints hints2("raw", ros::TransportHints(), _nh);
+
+
+        _depth_image_sub = it_.subscribe(_depth_image_topic, 1, &KinectPersonDetector::depthMapReader, this, hints2);
 
         _img_res_pub = it_.advertise("/kinect_person_detector/image", 1);
-        _people_list_pub = _nh.advertise<riddle::DetectedPersonsList>("/kinect_person_detector/detected_people", 1);
+        _people_list_pub = _nh.advertise<realpdt::DetectedPersonsList>("/kinect_person_detector/detected_people", 1);
 
 
         DetectionTrackingSystem::_this = &this->v;
@@ -2888,8 +2898,8 @@ public:
         b_image_g = new unsigned char[Globals::dImWidth*Globals::dImHeight*3];
         b_depth_g = new float[Globals::dImWidth*Globals::dImHeight];
 
-        //match_threshold = 10;																					//Modified
-        //tracker_ctr = 0;																					//Modified
+        match_threshold = 10;
+        tracker_ctr = 0;
 
         local_data_ready = false;
 
@@ -2900,6 +2910,43 @@ public:
         total_processed_frames_ctr = 0;
         this->start();
     }
+
+    /// To use normally mapped images
+//    KinectPersonDetector()
+//        :it_(_nh),_rgb_image_topic("color_image"), _depth_image_topic("depth_image")
+//        //as_(_nh, "find_person", boost::bind(&KinectPersonDetector::executeFindPerson, this, _1), false),
+//        //action_name_("find_person")
+//    {
+//
+//        //subsribe to the topics
+//        _rgb_image_sub = it_.subscribe(_rgb_image_topic, 1,
+//                                       &KinectPersonDetector::rgbImageReader, this);
+//
+//
+//        _depth_image_sub = it_.subscribe(_depth_image_topic, 1,
+//                                         &KinectPersonDetector::depthMapReader, this);
+//
+//        _img_res_pub = it_.advertise("/kinect_person_detector/image", 1);
+//        _people_list_pub = _nh.advertise<riddle::DetectedPersonsList>("/kinect_person_detector/detected_people", 1);
+//
+//
+//        DetectionTrackingSystem::_this = &this->v;
+//
+//        b_image_g = new unsigned char[Globals::dImWidth*Globals::dImHeight*3];
+//        b_depth_g = new float[Globals::dImWidth*Globals::dImHeight];
+//
+//        //match_threshold = 10;																					//Modified
+//        //tracker_ctr = 0;																					//Modified
+//
+//        local_data_ready = false;
+//
+//        this->stop();
+//        //as_.start(); //start actions server
+//
+//
+//        total_processed_frames_ctr = 0;
+//        this->start();
+//    }
 
     int total_processed_frames_ctr;
 
