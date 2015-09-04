@@ -496,6 +496,115 @@ public:
         }
     }
 
+    void save_features(const Vector<Vector< double > >& detected_Bbox, const Vector<Vector<double> >& x_point_cloud_distribution,const Vector<Vector<double> >& y_point_cloud_distribution,
+                        const Matrix<double>& depth_map, const PointCloud& point_cloud)
+    {
+    //initialise needed elements
+        // File to save bounding box coorinates
+        std::ofstream myfile;
+        myfile.open("bounding_boxes", std::ios::app);
+
+        //For occupancy grid
+        const unsigned char color[] = {0,255,0};
+        double scale_z_ = Globals::freespace_scaleZ;
+        double scale_x_ = Globals::freespace_scaleX;
+        double min_x_ = Globals::freespace_minX;
+        double min_z_ = Globals::freespace_minZ;
+        double max_x_ = Globals::freespace_maxX;
+        double max_z_ = Globals::freespace_maxZ;
+        int x_bins = (int)round((max_x_ - min_x_)*scale_x_)+1;
+        int z_bins = (int)round((max_z_ - min_z_)*scale_z_)+1;
+        double step_x = (max_x_ - min_x_)/double(x_bins-1);
+        double step_z = (max_z_ - min_z_)/double(z_bins-1);
+
+        int width = depth_map.x_size();
+
+        //for each detection :
+        for(int i=0; i< detected_Bbox.getSize(); ++i)
+        {
+            char str[10];
+            sprintf(str, "%d_%d.txt", global_frame_counter, i);
+            //needed containers
+            Vector<int> vect_pos_x;
+            Vector<int> vect_pos_z;
+
+        //Save coordinates Bbox
+            if(myfile.is_open())
+            {
+            //myfile << "#x y" << std::endl;
+                myfile << "frame: " << global_frame_counter << "-" << i << ' ' << detected_Bbox(i)(0) << ' ' << detected_Bbox(i)(1) << ' ' << detected_Bbox(i)(2) << ' ' << detected_Bbox(i)(3) << std::endl;
+                //myfile.close();
+            }
+            else std::cout << "Unable to open file" << std::endl;
+
+        //Project to ground plane (occupancy grid)
+            Matrix<double> occupancy;
+            //occupancy.set_size(x_bins, z_bins);
+            //occupancy.fill(0);
+            for(int vector_size = 0; vector_size < (detector_seg->x_distribution(i)).getSize(); ++vector_size)
+            {
+                int element_place =  (y_point_cloud_distribution(i)(vector_size)*width) + x_point_cloud_distribution(i)(vector_size);
+                double zj = point_cloud.Z(element_place);
+                double xj = point_cloud.X(element_place);
+                double yj = point_cloud.Y(element_place);
+
+                double x = xj - min_x_;
+                double z = zj - min_z_;
+
+                int pos_x  =(int)round(x/step_x);
+                int pos_z  =(int)round(z/step_z);
+
+                vect_pos_x.pushBack(pos_x);
+                vect_pos_z.pushBack(pos_z);
+
+                //if(pos_x>0 && pos_x < x_bins && pos_z > 0 && pos_z < z_bins)
+                    //occupancy(pos_x, pos_z) = 255;
+            }
+
+            //Write occupancy matrix to file
+            //Calculate barycenter in x and z
+            int bar_x = round(vect_pos_x.sum()/vect_pos_x.getSize());
+            int bar_z = round(vect_pos_z.sum()/vect_pos_z.getSize());
+            //Translation
+            Vector<int> vect_Bx(vect_pos_x.getSize(), 15-bar_x);
+            Vector<int> vect_Bz(vect_pos_z.getSize(), 10-bar_z);
+
+            Vector<int> translated_vect_x = vect_pos_x;
+            translated_vect_x += vect_Bx;
+            Vector<int> translated_vect_z = vect_pos_z;
+            translated_vect_z += vect_Bz;
+
+            //Create pairs and pushback in list
+            std::list<pair<int,int> > list1;
+            std::pair<int,int> foo;
+
+            for(int i =0; i<translated_vect_x.getSize(); ++i)
+            {
+                 foo = std::make_pair(translated_vect_x(i), translated_vect_z(i));
+                 list1.push_back(foo);
+            }
+            list1.sort();
+            list1.unique();
+            std::cout << "size of position vectors :" << translated_vect_x.getSize() << ", size of final list : " << list1.size() << std::endl;
+
+            Matrix<int> m1(31,21);
+            m1.fill(0);
+
+            for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
+            {
+                  std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
+            }
+
+            for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
+            {
+                  m1((*it).first, (*it).second) = 1;
+            }
+
+            m1.WriteToTXTApp(str, 1);
+        //save pcd
+        }
+    }
+
 
     void get_image(unsigned char* b_image, uint w, uint h, CImg<unsigned char>& cim)
     {
@@ -1227,7 +1336,7 @@ public:
             oneDet(5) = detected_bounding_boxes(j)(1);
             oneDet(6) = detected_bounding_boxes(j)(2);
             oneDet(7) = detected_bounding_boxes(j)(3) * 3;
-            oneDet(8) = detected_bounding_boxes(j)(5);
+            oneDet(8) = detected_bounding_boxes(j)(5);  //mean distance
             //OutputHOGdetL.pushBack(oneDet);															//Modified
         }
         detected_bounding_boxes.append(detected_bounding_boxes1);
@@ -1376,6 +1485,8 @@ public:
 //                //draw_roi(roi_image, w, h, cim_labeledROI); // --> SEGMENTATION FAULT
 //            }
 //        }
+
+        save_features(detected_bounding_boxes, detector_seg->x_distribution, detector_seg->y_distribution, depth_map, point_cloud);
 
         /// End of attempt 3
 
