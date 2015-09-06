@@ -12,8 +12,10 @@
 #include <sensor_msgs/image_encodings.h>
 
 
-
+//Point clouds
 #include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 
 #include "kinectgrabber.h"
@@ -520,33 +522,54 @@ public:
         int width = depth_map.x_size();
 
         //for each detection :
+        std::cout << "process each detection..." << std::endl;
         for(int i=0; i< detected_Bbox.getSize(); ++i)
         {
-            char str[10];
-            sprintf(str, "%d_%d.txt", global_frame_counter, i);
+            char str[10], str_pcd[10];
+            std::cout << "global_frame_counter : " << global_frame_counter <<  std::endl;
+            sprintf(str, "image_%d.txt", global_frame_counter);
+            sprintf(str_pcd, "image_%d.pcd", global_frame_counter);
             //needed containers
             Vector<int> vect_pos_x;
             Vector<int> vect_pos_z;
+            //Creating pcl derived point cloud
+            pcl::PointCloud<pcl::PointXYZ> cloud;
+            cloud.width = detected_Bbox(i)(2);
+            cloud.height = detected_Bbox(i)(3);
+            cloud.is_dense=false;
+            cloud.points.resize(cloud.width*cloud.height);
+
+            //fill initial pcl point cloud
 
         //Save coordinates Bbox
             if(myfile.is_open())
             {
             //myfile << "#x y" << std::endl;
-                myfile << "frame: " << global_frame_counter << "-" << i << ' ' << detected_Bbox(i)(0) << ' ' << detected_Bbox(i)(1) << ' ' << detected_Bbox(i)(2) << ' ' << detected_Bbox(i)(3) << std::endl;
+                myfile << "frame: " << global_frame_counter << ";" << detected_Bbox(i)(0) << ' ' << detected_Bbox(i)(1) << ' ' << detected_Bbox(i)(2) << ' ' << detected_Bbox(i)(3) << std::endl;
                 //myfile.close();
             }
             else std::cout << "Unable to open file" << std::endl;
 
         //Project to ground plane (occupancy grid)
-            Matrix<double> occupancy;
+            //Matrix<double> occupancy;
             //occupancy.set_size(x_bins, z_bins);
             //occupancy.fill(0);
-            for(int vector_size = 0; vector_size < (detector_seg->x_distribution(i)).getSize(); ++vector_size)
+            std::cout << "for each point cloud distribution" << std::endl;
+            for(int vector_size = 0; vector_size < (x_point_cloud_distribution(i)).getSize(); ++vector_size)
             {
                 int element_place =  (y_point_cloud_distribution(i)(vector_size)*width) + x_point_cloud_distribution(i)(vector_size);
                 double zj = point_cloud.Z(element_place);
                 double xj = point_cloud.X(element_place);
                 double yj = point_cloud.Y(element_place);
+
+                //fill in pcl poin t cloud
+                int x_inBbox = x_point_cloud_distribution(i)(vector_size) - detected_Bbox(i)(0);
+                int y_inBbox = y_point_cloud_distribution(i)(vector_size) - detected_Bbox(i)(1);
+                int element_place_pcl = (y_inBbox*cloud.width) + x_inBbox;
+                cloud.points[i].x = point_cloud.X(element_place);
+                cloud.points[i].y = point_cloud.Y(element_place);
+                cloud.points[i].z = point_cloud.Z(element_place);
+
 
                 double x = xj - min_x_;
                 double z = zj - min_z_;
@@ -562,38 +585,42 @@ public:
             }
 
             //Write occupancy matrix to file
-            //Calculate barycenter in x and z
-            int bar_x = round(vect_pos_x.sum()/vect_pos_x.getSize());
-            int bar_z = round(vect_pos_z.sum()/vect_pos_z.getSize());
-            //Translation
-            Vector<int> vect_Bx(vect_pos_x.getSize(), 15-bar_x);
-            Vector<int> vect_Bz(vect_pos_z.getSize(), 10-bar_z);
-
-            Vector<int> translated_vect_x = vect_pos_x;
-            translated_vect_x += vect_Bx;
-            Vector<int> translated_vect_z = vect_pos_z;
-            translated_vect_z += vect_Bz;
-
             //Create pairs and pushback in list
             std::list<pair<int,int> > list1;
             std::pair<int,int> foo;
 
-            for(int i =0; i<translated_vect_x.getSize(); ++i)
+            for(int i =0; i<vect_pos_x.getSize(); ++i)
             {
-                 foo = std::make_pair(translated_vect_x(i), translated_vect_z(i));
+                 foo = std::make_pair(vect_pos_x(i), vect_pos_z(i));
                  list1.push_back(foo);
             }
             list1.sort();
             list1.unique();
-            std::cout << "size of position vectors :" << translated_vect_x.getSize() << ", size of final list : " << list1.size() << std::endl;
 
-            Matrix<int> m1(31,21);
-            m1.fill(0);
-
+            //search for min_x, max_x, min_y and max_y
+            int min_x=1000;
+            int min_y=1000;
+            int max_x=0;
+            int max_y=0;
             for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
             {
-                  std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
+                min_x = ((*it).first < min_x)?(*it).first:min_x;
+                min_y = ((*it).second < min_y)?(*it).second:min_y;
+                max_x = ((*it).first > max_x)?(*it).first:max_x;
+                max_y = ((*it).second > max_y)?(*it).second:max_y;
+                  //std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
             }
+
+            //offset on all elements of list
+            for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
+            {
+                (*it).first -= min_x;
+                (*it).second -= min_y;
+                  //std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
+            }
+
+            Matrix<int> m1(max_x-min_x+1,max_y-min_y+1);
+            m1.fill(0);
 
             for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
             {
@@ -602,6 +629,7 @@ public:
 
             m1.WriteToTXTApp(str, 1);
         //save pcd
+            pcl::io::savePCDFileASCII(str_pcd,cloud);
         }
     }
 
@@ -2038,7 +2066,7 @@ public:
 
         global_frame_counter++;
 #endif
-
+        global_frame_counter++;
         /////////////////////////////////////////////////////////////////////////
         ++cnt;
 
