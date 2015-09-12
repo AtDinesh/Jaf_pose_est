@@ -1160,13 +1160,17 @@ public:
 
 /////////////////////////////////CHOOSE DISPLAY MODE ///////////////////////////////////////////////:
          //Change the display mode here (need to implement threads later...)
-        display_mode = ROI_MODE;
-        detector_seg->visualize_roi=true;
-        detector->visualize_roi=true;
+//        display_mode = ROI_MODE;
+//        detector_seg->visualize_roi=true;
+//        detector->visualize_roi=true;
 
 //        display_mode = DEPTH_MODE;
 //        detector_seg->visualize_roi=false;
 //        detector->visualize_roi=false;
+
+        display_mode = IMAGE_MODE;
+        detector_seg->visualize_roi=false;
+        detector->visualize_roi=false;
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
         CImg<unsigned char> cim_final(w,h,1,3), cim_labeledROI(w,h,1,3);
@@ -1568,16 +1572,16 @@ public:
                         cv::putText(img_extraite, buffer2, cv::Point((vect_pos_angle(num_elements)(0))+30,(vect_pos_angle(num_elements)(1))+30),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255,255,0), 3,8);
                         cv::putText(img_extraite, bufferXY, cv::Point((vect_pos_angle(num_elements)(0))+60,(vect_pos_angle(num_elements)(1))+60),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,255), 3,8);
                         //save data in text file
-                        std::ofstream myfile;
-                        myfile.open("TM_acq_data1.dat", ios::app);
-                        if(myfile.is_open())
-                        {
-                            //myfile << "#x y" << std::endl;
-                            myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
-                            myfile.close();
-                        }
-                        else std::cout << "Unable to open file" << std::endl;
-                    }
+//                        std::ofstream myfile;
+//                        myfile.open("TM_acq_data1.dat", ios::app);
+//                        if(myfile.is_open())
+//                        {
+//                            //myfile << "#x y" << std::endl;
+//                            myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
+//                            myfile.close();
+//                        }
+//                        else std::cout << "Unable to open file" << std::endl;
+//                    }
                 }
                 cv::imshow( "Display window", img_extraite);
                 cv::waitKey(30);
@@ -1749,7 +1753,7 @@ public:
             {
 
                 //push the bounding box onto the message
-                RenderBBox2D(detected_bounding_boxes(jj), cim_final, 0, 255, 0);
+                //RenderBBox2D(detected_bounding_boxes(jj), cim_final, 0, 255, 0);
                 p.position[0] = (int)detected_bounding_boxes(jj)(0);
                 p.position[1] = (int)detected_bounding_boxes(jj)(1);
                 p.position[2] = (int)detected_bounding_boxes(jj)(2);
