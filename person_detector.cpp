@@ -1032,14 +1032,6 @@ public:
         if(upper_params->_this->is_seg)
         {
             upper_params->_this->detector_seg->ProcessFrame(upper_params->camera, *(upper_params->depth_map), *(upper_params->point_cloud), upper_params->_this->upper_body_template, *(upper_params->detected_bounding_boxes));
-            //upper_params->_this->detector_seg->GetROIs(upper_params->camera, *(upper_params->depth_map), labeledMap, *(upper_params->point_cloud));          //ADDED
-            //CImg<unsigned char> cim_labeledROI(labeledMap.x_size(),labeledMap.y_size(),1,3);              //ADDED   w=801 h =601
-            //std::cout << "size of labeledMap : (x=" << labeledMap.x_size() << ",y=" << labeledMap.y_size() << ")." << std::endl;
-            //cim_labeledROI.draw_image(cim_labeledROI);
-            //draw_hist(upper_params->_this->upper_body_template,801,601,cim_labeledROI); //PROBLEM !!
-            //display_labeledROIs.display(cim_labeledROI);
-
-
         }
         else
         {
@@ -1645,8 +1637,7 @@ public:
         const unsigned char bcolor[] = {50,50,50};
         //cim_tmp.draw_text(10,10, "Tracking",color,0,1,20);                                                          //COMMENT**********************
         cim_final.draw_text(10,10, "Detection and Tracking",color,0,1,20);
-        cim_final.draw_image(w,cim_tmp);                                                                            // COMMENT !!!!!!!!!!!!!!!!!!!!!!
-        //cim_labeledROI.draw_text(10,10, "visu",color,0,1,20);                                                                   // SUPPRESS !!!!!!!!!!!!!!!!!!!!!!
+        //cim_final.draw_image(w,cim_tmp);                                                                            // COMMENT !!!!!!!!!!!!!!!!!!!!!!
 
         if(show_help)
             cim_final.draw_text(650,200, help_string, color,bcolor,0.7,20);
