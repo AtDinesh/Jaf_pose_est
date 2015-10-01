@@ -1296,152 +1296,10 @@ public:
 
         //detected bounding box
 
-        /// Attempt 1 to project content of bounding boxes on the ground
-        // First.. try on first detection
-//        if (detected_bounding_boxes.getSize() != 0)
-//        {
-//            //Vector<double> pos3D;
-//            double distance;
-//            Vector<double> v_bbox1(4);
-//            Vector<double> pos3D;
-//            camera.bbToDetection(detected_bounding_boxes(0),pos3D, Globals::WORLD_SCALE, distance);
-//
-//            //******************************************************
-//            // Project pos on the Ground Plane
-//            //******************************************************
-//            camera.ProjectToGP(pos3D, Globals::WORLD_SCALE, pos3D);
-//
-//            //******************************************************
-//            // Check if x is in front of the camera
-//            //******************************************************
-//            double invWorldScale1 = 1.0/Globals::WORLD_SCALE;
-//            Vector<double> pos3D_worsldScale = pos3D*Globals::WORLD_SCALE;
-//            Vector<double> auxPOS3D = pos3D*invWorldScale1;
-//
-//            //******************************************************
-//            // Projection on Screen
-//            //******************************************************
-//            Vector<double> pos_screen;
-//            camera.WorldToImage(auxPOS3D, Globals::WORLD_SCALE, pos_screen);
-//
-//            //******************************************************
-//            // Given a pos in 2D (image) and the camera par, project this 2D pos to the GP
-//            //******************************************************
-//            Vector<double> gp = camera.get_GP();
-//            pos3D_plane = AncillaryMethods::backprojectGP(pos_screen, camera, gp);
-//
-//            //******************************************************
-//            // test ancillary methods
-//            //******************************************************
-//            pos3D_plane = AncillaryMethods::PlaneToCam(camera);
-//        }
-//        else
-//            pos3D_plane.clearContent();
-//
-//        if(display_mode == DEPTH_MODE)
-//        {
-//            //std::cout << "entered ! size pos3D_plane : " <<pos3D_plane.getSize() <<  std::endl;
-//            //
-//            get_depth(depth_map,w,h,cim_final,point_cloud,last_gp);
-//            get_depth(depth_map,w,h,cim_final,point_cloud,last_gp,pos3D_plane);
-//        }
-        /// End of attempt - not working
-
         cv::namedWindow( "Display window", CV_WINDOW_NORMAL );// Create a window for display. OpenCV                 // Added
         //cv::namedWindow( "Display window 2", CV_WINDOW_NORMAL );// Create a window for display. OpenCV                 // Added
 
-        /// Attempt 2 to project content of bounding boxes on the ground --> colorhist
-//        CImg<unsigned char> bb_colhist_image(w,h,1,3);
-//        if (detected_bounding_boxes.getSize() != 0)
-//        {
-//            double distance;
-//            Volume<double> colhist;
-//            Vector<double> pos3D;
-//            Vector<double> v_bbox(4);
-//
-//            //******************************************************
-//            // Get Detection
-//            //******************************************************
-//            int det = camera.bbToDetection(detected_bounding_boxes(0),pos3D, Globals::WORLD_SCALE, distance);
-//            Detections detect(det,0);
-//
-//            //******************************************************
-//            //compute color hist
-//            //******************************************************
-//            v_bbox(0)=detected_bounding_boxes(0)(0);
-//            v_bbox(1)=detected_bounding_boxes(0)(1);
-//            v_bbox(2)=detected_bounding_boxes(0)(2);
-//            v_bbox(3)=detected_bounding_boxes(0)(3)/3;
-//            detect.computeColorHist(colhist, v_bbox, Globals::binSize, bb_colhist_image);
-//            display_labeledROIs.display(bb_colhist_image);
-//        }
-
-        /// End of attempt
-
-        /// Attempt 3 : visualize detected areas
-//        if (detected_bounding_boxes.getSize()!=0)
-//        for (int i = 0; i < detected_bounding_boxes.getSize(); ++i)
-//        {
-//            int cropped_height = (int)(detected_bounding_boxes(i)(3)/2.0);
-//            cropped_height += (detected_bounding_boxes(i)(3));
-//
-//            if( detected_bounding_boxes(i)(1)+cropped_height >= Globals::dImHeight)
-//                cropped_height = Globals::dImHeight - (int)detected_bounding_boxes(i)(1) - 1;
-//
-//            // Cropped and Filter depth_map with respect to distance from camera
-//            int start_column = (int)detected_bounding_boxes(i)(0); // can be negativ !!!!!!!!!!!!!!!!!
-//            int end_column = (int)(detected_bounding_boxes(i)(0) + detected_bounding_boxes(i)(2));
-//            int start_row = (int)max(0.0, detected_bounding_boxes(i)(1));
-//            int end_row = (int)detected_bounding_boxes(i)(1) + cropped_height;
-//
-//            Matrix<double> cropped1(end_column-start_column+1, end_row-start_row+1);
-//            // Set thrtesholds for depth_map
-//            double min_distance_threshold = 0.1;
-//            double max_distance_threshold = 7;
-//            double d_val;
-//            for(int ii = 0, ii_depth = start_column; ii < cropped1.x_size(); ++ii, ++ii_depth) //Extract points satisfying distance conditions
-//            {
-//                for(int jj = 0, jj_depth = start_row; jj < cropped1.y_size(); ++jj, ++jj_depth)
-//                {
-//                    if (ii_depth < depth_map.x_size() && jj_depth < depth_map.y_size() && ii_depth > 0 && jj_depth > 0)
-//                        d_val = depth_map(ii_depth,jj_depth); // Problème ici !!
-//                    else d_val = 8;
-//
-//                    if(d_val <= min_distance_threshold || d_val >= max_distance_threshold)
-//                    {
-//                        cropped1(ii, jj) = 0;
-//                    }
-//                    else
-//                    {
-//                        cropped1(ii, jj) = d_val;
-//                    }
-//                }
-//            }
-//
-//            ////////////// just for test (must be removed)
-//            Matrix<int> roi_image;
-//            roi_image.set_size(w,h);
-//            if(true)
-//            {
-//                for(int tmpx=start_column, tmpxx=0; tmpxx<cropped1.x_size(); ++tmpx,++tmpxx)
-//                {
-//                    for(int tmpy=start_row, tmpyy=0; tmpyy<cropped1.y_size(); ++tmpy,++tmpyy)
-//                    {
-//                        if(tmpyy==0 || tmpyy==cropped1.y_size()-1 || tmpxx==0 || tmpxx==cropped1.x_size()-1) //if on the border of the image
-//                            if (tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
-//                                roi_image(tmpx,tmpy)=i+1;
-//
-//                        if(cropped1(tmpxx,tmpyy)!=0 && tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
-//                            roi_image(tmpx,tmpy)=i+1;
-//                    }
-//                }
-//                //draw_roi(roi_image, w, h, cim_labeledROI); // --> SEGMENTATION FAULT
-//            }
-//        }
-
         save_features(detected_bounding_boxes, detector_seg->x_distribution, detector_seg->y_distribution, depth_map, point_cloud);
-
-        /// End of attempt 3
 
         ///Attempt 4 - project detected pc from depth_map
         Matrix<double> objects_projected;
@@ -1686,8 +1544,6 @@ public:
         }*/
 
         ////////////////////////// Visualization Part II////////////////////
-        //Matrix<int> roiHist_viewInt;
-        //roiHist_viewInt.set_size(detector_seg->roiInHist_view.x_size(), detector_seg->roiInHist_view.y_size(), detector_seg->roiInHist_view.data());
         if(display_mode == ROI_MODE)
         {
             if(is_seg)
@@ -1735,43 +1591,6 @@ public:
 //                cv::imshow( "Display window", img_extraite_rescale );
 //                cv::waitKey(30);
                 /// END OF TEST --> COMPLETED
-
-                //draw_hist(detector_seg->occ_map, w,h,cim_final);
-                //Matrix<int> roiInHist_int(detector_seg->roiInHist_view.x_size(),detector_seg->roiInHist_view.y_size(),(int*)detector_seg->roiInHist_view.data());
-                //draw_hist(roiInHist_int, w,h,cim_final);
-               // std::cout << "size roiInHist_int : (" << roiInHist_int.x_size() <<","<< roiInHist_int.y_size() << ")" << std::endl;
-////                for (int i=0; i<detector_seg->roi_reshaped.getSize()-1;i++)
-////                {
-// Start test roi_reshaped_eqt
-//                int i=0;
-//                int x_gen=0;
-//                if (detector_seg->roi_reshaped.getSize() !=0)
-//                {
-//                tmp.set_size(w,h);
-//                    while ((i<detector_seg->roi_reshaped.getSize()) && (i < 4) && (x_gen < w))
-//                    {
-////                        std::cout << "(w:" << w << ",h:" << h << ")" << std::endl;
-////                        std::cout << "(column:" << detector_seg->roi_reshaped(i).y_size() << ",row:" << detector_seg->roi_reshaped(i).x_size() << ")" << std::endl;
-//
-//                        for(int x_part=0;x_part<detector_seg->roi_reshaped(i).x_size();x_part++)
-//                        {
-//                            for(int y_part=0;y_part<detector_seg->roi_reshaped(i).y_size();y_part++)
-//                            {
-//                                detector_seg->roi_image(x_gen,y_part) = (int)detector_seg->roi_reshaped(i)(x_part,y_part);
-//                            }
-//                            x_gen++;
-//
-//                        }
-////                        //std::cout << "enter !!!!!!!!!!!!" << std::endl;
-////                        std::cout << "enter draw_roi" << std::endl;
-////                        draw_roi(tmp,w,h,cim_final);
-//                        x_gen++;
-//                        i++;
-//                    }
-//                    //draw_roi(detector_seg->roi_image,w,h,cim_final);
-//                    std::cout << "done" << std::endl;
-//                }
-// End Test roi_reshaped_eqt
             }
             else
             {
