@@ -650,28 +650,6 @@ public:
         display.display(cim);                                                                              //Modified
     }
 
-    void MatrixToCimg(Matrix<int> &int_matrix, uint w, uint h, CImg<unsigned char>& cim)                        //ADDED !
-    {
-        //int* ptr = int_matrix;
-        std::cout<<"taille matrice : (x:"<<int_matrix.x_size()<<", y:"<< int_matrix.y_size()<<")"<<std::endl;
-        std::cout<<"w="<<w<<", h="<<h<<std::endl;
-
-        for (unsigned int row = 0; row < h; ++row)
-        {
-            for (unsigned int col = 0; col < w; ++col)
-            {
-                // access the viewerImage as column, row
-//                std::cout << "row= "<< row << ", col= " << col << "test" << std::endl;
-//                cim(col,row,0,0) = (unsigned char) temp;
-                cim(col,row,0,0) = (unsigned char)(char(int_matrix(col,row))); // red component
-                //cim(col,row,0,1) = int_matrix(col,row);                         //*(ptr++); // green
-                //cim(col,row,0,2) = int_matrix(col,row);                 //           *(ptr++); // blue
-            }
-        }
-        std::cout<<"test : " << std::endl;
-        std::cout << "int : "<< int_matrix(10,10) <<", char : "<< cim(10,10,0,0) << "conversion : " << char(int_matrix(10,10)) << std::endl;
-    }
-
     void get_depth(const Matrix<double>& depth_map, uint w, uint h, CImg<unsigned char>& cim, PointCloud pc, Vector<double> gp)
     {
         double min=depth_map.data()[0];
@@ -946,56 +924,6 @@ public:
         }
     }
 
-    void vis_gp_reg(CImg<unsigned char>& cim, const Camera& camera, const Vector<double> pos3D_on_plane)        //Added
-    {
-        double lx = -1.0, ux = 1.0;
-        double lz = 0.5, uz = 8.0;
-        double z2 = uz/4, z3 = uz/2, z4 = uz/4*3;
-        double X[]={lx, lx, 0., 0., ux, ux, lx, ux, lx, ux, lx, ux, lx, ux};
-        double Z[]={lz, uz, lz, uz, lz, uz, uz, uz, z4, z4, z3, z3,  z2,  z2};
-        double c20 = camera.K()(2,0);
-        double c00 = camera.K()(0,0);
-        double c21 = camera.K()(2,1);
-        double c11 = camera.K()(1,1);
-
-        unsigned char color[3] = {255,255,0};
-        unsigned char color_pos[3] = {0,255,0};
-
-        char dis[100];
-        for(int i=0; i<14; ++i)
-        {
-            double Y = (-last_gp(3)-last_gp(0)*X[i]-last_gp(2)*Z[i])/last_gp(1);
-            int x1 = X[i]*c00/Z[i]+c20;
-            int y1 = Y*c11/Z[i]+c21;
-            ++i;
-            Y = (-last_gp(3)-last_gp(0)*X[i]-last_gp(2)*Z[i])/last_gp(1);
-            int x2 = X[i]*c00/Z[i]+c20;
-            int y2 = Y*c11/Z[i]+c21;
-            if(i>6)
-            {
-                sprintf(dis,"%0.1f",Z[i]);
-                cim.draw_text(335,y2-21,dis,color,0,1,20);
-            }
-            cim.draw_line(x1,y1,x2,y2,color);
-        }
-        for (int j=0; j<10; j++)
-        {
-            double Ypos = (-pos3D_on_plane(3)-pos3D_on_plane(0)*X[j]-pos3D_on_plane(2)*Z[j])/pos3D_on_plane(1);
-            int x1pos = X[j]*c00/Z[j]+c20;
-            int y1pos = Ypos*c11/Z[j]+c21;
-            ++j;
-            Ypos = (-pos3D_on_plane(3)-pos3D_on_plane(0)*X[j]-pos3D_on_plane(2)*Z[j])/pos3D_on_plane(1);
-            int x2pos = X[j]*c00/Z[j]+c20;
-            int y2pos = Ypos*c11/Z[j]+c21;
-            if(j>0)
-            {
-                sprintf(dis,"%0.1f",Z[j]);
-                cim.draw_text(335,y2pos-21,dis,color,0,1,20);
-            }
-            cim.draw_line(x1pos,y1pos,x2pos,y2pos,color_pos);
-        }
-    }
-
     double getOrientation(vector<cv::Point> &pts, cv::Mat &img)
     {
         //Construct a buffer used by the pca analysis
@@ -1107,7 +1035,6 @@ public:
             //upper_params->_this->detector_seg->GetROIs(upper_params->camera, *(upper_params->depth_map), labeledMap, *(upper_params->point_cloud));          //ADDED
             //CImg<unsigned char> cim_labeledROI(labeledMap.x_size(),labeledMap.y_size(),1,3);              //ADDED   w=801 h =601
             //std::cout << "size of labeledMap : (x=" << labeledMap.x_size() << ",y=" << labeledMap.y_size() << ")." << std::endl;
-            //upper_params->_this->MatrixToCimg(labeledMap,labeledMap.x_size(),labeledMap.y_size(),cim_labeledROI);                          //ADDED
             //cim_labeledROI.draw_image(cim_labeledROI);
             //draw_hist(upper_params->_this->upper_body_template,801,601,cim_labeledROI); //PROBLEM !!
             //display_labeledROIs.display(cim_labeledROI);
@@ -1307,9 +1234,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
         CImg<unsigned char> cim_final(w,h,1,3), cim_labeledROI(w,h,1,3);
-        get_image(b_image,w,h,cim_final);
-        //if (labeledMap.x_size()!=0 && labeledMap.y_size()!=0) //added --> if not empty
-            //MatrixToCimg(labeledMap,labeledMap.x_size(),labeledMap.y_size(),cim_labeledROI);                                                               // Added
+        get_image(b_image,w,h,cim_final);                                                       // Added
         //display_labeledROIs.display(cim_final);                                                                  //ADDED
         display_labeledROIs.set_title("display_labeledROI");                                                        //ADDED !
 
@@ -1868,7 +1793,6 @@ public:
             detList.detectedPersonsList.resize(detected_bounding_boxes.getSize());
 
             //vis_gp(cim_final, camera);
-            //vis_gp_reg(cim_final, camera, pos_screen);
 
             int indx = -1;
             float d = 10.;
