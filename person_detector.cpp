@@ -1373,63 +1373,6 @@ public:
                         }
                     }
 
-                    // Suppress this !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//                    char q;
-//                    std::cout << "write this matrix to file ? (yes == y)";
-//                    cin >> q;
-//                    if(q=='y')
-//                    {
-//                        //Calculate barycenter in x and z
-//                        int bar_x = round(vect_pos_x.sum()/vect_pos_x.getSize());
-//                        int bar_z = round(vect_pos_z.sum()/vect_pos_z.getSize());
-//                        //Translation
-//                        Vector<int> vect_Bx(vect_pos_x.getSize(), 15-bar_x);
-//                        Vector<int> vect_Bz(vect_pos_z.getSize(), 10-bar_z);
-//
-//                        Vector<int> translated_vect_x = vect_pos_x;
-//                        translated_vect_x += vect_Bx;
-//                        Vector<int> translated_vect_z = vect_pos_z;
-//                        translated_vect_z += vect_Bz;
-//
-//                        //Create pairs and pushback in list
-//                        std::list<pair<int,int> > list1;
-//                        std::pair<int,int> foo;
-//
-//                        for(int i =0; i<translated_vect_x.getSize(); ++i)
-//                        {
-//                            foo = std::make_pair(translated_vect_x(i), translated_vect_z(i));
-//                            list1.push_back(foo);
-//                        }
-//                        list1.sort();
-//                        list1.unique();
-//                        std::cout << "size of position vectors :" << translated_vect_x.getSize() << ", size of final list : " << list1.size() << std::endl;
-//
-//                        Matrix<int> m1(31,21);
-//                        m1.fill(0);
-//
-//                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
-//                        {
-//                            std::cout << "(" << (*it).first << "," << (*it).second << ")" << std::endl;
-//                        }
-//
-//                        for(list<pair<int,int> >::iterator it=list1.begin();it!=list1.end();++it)
-//                        {
-//                            m1((*it).first, (*it).second) = 1;
-//                        }
-//
-//                        //Print matrix
-//                        for(int i=0; i< m1.y_size(); ++i)
-//                        {
-//                            for(int j=0; j<m1.x_size(); ++j)
-//                                std::cout << m1(j,i) << " ";
-//                            std::cout << "\n";
-//                        }
-//
-//                        m1.WriteToTXTApp("TM_acq_mat1.txt", 1);
-//                    }
-
-                    //////////////////////////////////////////////////////
-
                     //compute Orientation
                     int operation = -1;
                     operation = computeOrientation(vect_pos_x, vect_pos_z, ratioXY);
@@ -1481,6 +1424,7 @@ public:
                     if(vect_pos_angle(num_elements).getSize() ==3)
                     {
                         //correctAngle(vect_pos_angle(num_elements)(2), vect_ratioXY(num_elements));
+                        ///Put data in a buffer so that we can print thel on image or save in files easily
                         char buffer[2], buffer2[5], bufferXY[5];
                         sprintf(buffer,"%f",vect_pos_angle(num_elements)(2)); //angle
                         sprintf(buffer2,"%f",rate); //ratio eigen values
@@ -1489,16 +1433,17 @@ public:
                         cv::putText(img_extraite, buffer, cv::Point((vect_pos_angle(num_elements)(0)),(vect_pos_angle(num_elements)(1))),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,0), 3,8);
                         cv::putText(img_extraite, buffer2, cv::Point((vect_pos_angle(num_elements)(0))+30,(vect_pos_angle(num_elements)(1))+30),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255,255,0), 3,8);
                         cv::putText(img_extraite, bufferXY, cv::Point((vect_pos_angle(num_elements)(0))+60,(vect_pos_angle(num_elements)(1))+60),CV_FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0,255,255), 3,8);
-                        //save data in text file
-                        std::ofstream myfile;
-                        myfile.open("TM_acq_data1.dat", ios::app);
-                        if(myfile.is_open())
-                        {
-                            //myfile << "#x y" << std::endl;
-                            myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
-                            myfile.close();
-                        }
-                        else std::cout << "Unable to open file" << std::endl;
+
+                        ///save data in text file
+//                        std::ofstream myfile;
+//                        myfile.open("TM_acq_data1.dat", ios::app);
+//                        if(myfile.is_open())
+//                        {
+//                            //myfile << "#x y" << std::endl;
+//                            myfile << buffer << ' ' << buffer2 << ' ' << bufferXY <<  std::endl;
+//                            myfile.close();
+//                        }
+//                        else std::cout << "Unable to open file" << std::endl;
                     }
                 }
                 cv::imshow( "Display window", img_extraite);
