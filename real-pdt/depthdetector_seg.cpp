@@ -229,11 +229,7 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
 
     if (final_result.getSize()!=0)
     {
-        // first, initialize size of variables
-        //points_distribution.clearContent();
-        //points_distribution.setSize(final_result.getSize());
-        //Vector<double> point_coordinates;
-        //point_coordinates.setSize(2);
+        // initialize size of variables
         x_distribution.clearContent();
         x_distribution.setSize(final_result.getSize());
         y_distribution.clearContent();

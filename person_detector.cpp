@@ -2576,11 +2576,6 @@ int main_preload()
         if(Globals::use_segmentation_roi)
         {
             detector_seg->ProcessFrame(cameras(current_frame), depth_maps(current_frame), point_cloud, upper_body_template, detected_bounding_boxes);
-            // For labeled ROIs
-            //Matrix<int> labeledMap;
-            std::cout << "modifying labeledMap" << std::endl;                                                                                     //ADDED
-            detector_seg->GetROIs(cameras(current_frame), depth_maps(current_frame), labeledMap, point_cloud);          //ADDED                                                                       //ADDED
-            //display_labeledROIs.display(labeledROI);                                                                    //ADDED
         }
         else
             detector->ProcessFrame(cameras(current_frame), depth_maps(current_frame), point_cloud, upper_body_template, detected_bounding_boxes);

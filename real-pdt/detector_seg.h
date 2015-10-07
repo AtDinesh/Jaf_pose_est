@@ -53,7 +53,6 @@ public:
     //      output:
     //          occ_map_binary        -   binary occ_map (LabeledRois)
     ///////////////////////////////////////////////////////////////////////
-    void GetROIs(const Camera &camera, const Matrix<double> &depth_map, Matrix<int>& occ_map_binary, const PointCloud &point_cloud);     //Added
 
 
 protected:

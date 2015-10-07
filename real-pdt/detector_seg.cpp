@@ -6,27 +6,6 @@ Detector_Seg::Detector_Seg()
 {
 }
 
-void Detector_Seg::GetROIs(const Camera &camera, const Matrix<double> &depth_map, Matrix<int>& occ_map_binary, const PointCloud &point_cloud)          //Added
-{
-    int width = depth_map.x_size();
-    int height = depth_map.y_size();
-
-    Matrix<int> mat_2D_pos_x(width, height, -1);
-    Matrix<int> mat_2D_pos_y(width, height, -1);
-
-    // Compute 2D_positions, and occ_Map matrices
-    ComputeFreespace(camera, occ_map_binary, mat_2D_pos_x, mat_2D_pos_y, point_cloud, occ_map);
-
-    Vector<ROI_SEG> all_ROIs;
-    PreprocessROIs(occ_map_binary, all_ROIs);
-
-    Vector<SegmentedObj> all_objs; //all objects in image
-    SegmentationROI::RunSegmentation(all_objs, occ_map, occ_map_binary, all_ROIs, mat_2D_pos_x, mat_2D_pos_y, point_cloud.X, point_cloud.Y, point_cloud.Z);
-    std::cout << "size all_objs vector : " << all_objs.getSize() << std::endl;
-    std::cout << "size all_ROIs vector : " << all_ROIs.getSize() << std::endl;
-
-}
-
 void Detector_Seg::ProcessFrame(const Camera &camera, const Matrix<double> &depth_map, const PointCloud &point_cloud,
                             const Matrix<double> &upper_body_template, Vector<Vector<double> > &detected_bounding_boxes)
 {
