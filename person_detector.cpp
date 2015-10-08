@@ -554,7 +554,6 @@ public:
             //Matrix<double> occupancy;
             //occupancy.set_size(x_bins, z_bins);
             //occupancy.fill(0);
-            std::cout << "for each point cloud distribution" << std::endl;
             for(int vector_size = 0; vector_size < (x_point_cloud_distribution(i)).getSize(); ++vector_size)
             {
                 int element_place =  (y_point_cloud_distribution(i)(vector_size)*width) + x_point_cloud_distribution(i)(vector_size);
@@ -566,9 +565,9 @@ public:
                 int x_inBbox = x_point_cloud_distribution(i)(vector_size) - detected_Bbox(i)(0);
                 int y_inBbox = y_point_cloud_distribution(i)(vector_size) - detected_Bbox(i)(1);
                 int element_place_pcl = (y_inBbox*cloud.width) + x_inBbox;
-                cloud.points[i].x = point_cloud.X(element_place);
-                cloud.points[i].y = point_cloud.Y(element_place);
-                cloud.points[i].z = point_cloud.Z(element_place);
+                cloud.points[element_place_pcl].x = point_cloud.X(element_place);
+                cloud.points[element_place_pcl].y = point_cloud.Y(element_place);
+                cloud.points[element_place_pcl].z = point_cloud.Z(element_place);
 
 
                 double x = xj - min_x_;
