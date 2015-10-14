@@ -106,7 +106,6 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
         }
 
 
-
         Matrix<double> copy_cropped = cropped;
 
         for(int scale_index = 0; scale_index < all_scales.getSize(); ++scale_index)
@@ -227,6 +226,89 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
     /// To just vidualize final detections - comment if not needed
     // CHECK EVERY DETECTED_BBOXES
 
+    //Copy final_result to keep information about the full detection
+    Vector<Vector<double> > final_result_full = final_result;
+
+    //First, let's get the information about the full detection (used to get PCD files)
+    if (final_result_full.getSize()!=0)
+    {
+        // initialize size of variables
+        x_distribution_full.clearContent();
+        x_distribution_full.setSize(final_result.getSize());
+        y_distribution_full.clearContent();
+        y_distribution_full.setSize(final_result.getSize());
+
+        // working on every bbox of final_result
+        for (int i = 0; i < final_result_full.getSize(); ++i)
+        {
+
+            ///to get the head + body:
+            int cropped_height = (int)(final_result_full(i)(3)/2.0);
+            cropped_height += (final_result_full(i)(3));//* Globals::evaluation_inc_height_ratio;
+            //final_result_full(i)(1) -= (final_result_full(i)(3) * Globals::evaluation_inc_height_ratio)/2.0;
+
+            if( final_result_full(i)(1)+cropped_height >= Globals::dImHeight)
+                cropped_height = Globals::dImHeight - (int)final_result_full(i)(1) - 1;
+
+            if(Globals::verbose)
+                cout << "(distances(i) " << distances(i)(0) << " radius " << distances(i)(1)/2.0 << endl;
+
+            // Cropped and Filter depth_map with respect to distance from camera
+            int start_column = (int)final_result_full(i)(0); // can be negativ !!!!!!!!!!!!!!!!!
+            int end_column = (int)(final_result_full(i)(0) + final_result_full(i)(2));
+            int start_row = (int)max(0.0, final_result_full(i)(1));
+            int end_row = (int)final_result_full(i)(1) + cropped_height;
+
+            Matrix<double> cropped1(end_column-start_column+1, end_row-start_row+1);
+            // Set thrtesholds for depth_map
+            double min_distance_threshold = distances(i)(0)- (distances(i)(1)+0.2)/3.0; //was 0.2, changed to 0.005
+            double max_distance_threshold = distances(i)(0)+ (distances(i)(1)+0.2)/2.0; //was 0.2, changed to 0.5
+            double d_val;
+
+
+            for(int ii = 0, ii_depth = start_column; ii < cropped1.x_size(); ++ii, ++ii_depth) //Extract points satisfying distance conditions
+            {
+                for(int jj = 0, jj_depth = start_row; jj < cropped1.y_size(); ++jj, ++jj_depth)
+                {
+                    if (ii_depth < depth_map.x_size() && jj_depth < depth_map.y_size() && ii_depth > 0 && jj_depth > 0)
+                    {
+                        d_val = depth_map(ii_depth,jj_depth); // Problème ici !!
+                    }
+                    else d_val = distances(i)(0);
+
+                    if(d_val <= min_distance_threshold || d_val >= max_distance_threshold)
+                    {
+                        cropped1(ii, jj) = 0;
+                    }
+                    else
+                    {
+                        cropped1(ii, jj) = d_val;   //for cropped image -> vizualisation
+                        // pushBack data in variables for PCA
+                        x_distribution_full(i).pushBack(ii_depth);
+                        y_distribution_full(i).pushBack(jj_depth);
+                    }
+                }
+            }
+
+//        ////////////// just for test (must be removed)
+            if(visualize_roi)
+                for(int tmpx=start_column, tmpxx=0; tmpxx<cropped1.x_size(); ++tmpx,++tmpxx)
+                {
+                    for(int tmpy=start_row, tmpyy=0; tmpyy<cropped1.y_size(); ++tmpy,++tmpyy)
+                    {
+                        if(tmpyy==0 || tmpyy==cropped1.y_size()-1 || tmpxx==0 || tmpxx==cropped1.x_size()-1) //if on the border of the image
+                            if (tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+                                roi_image(tmpx,tmpy)=i+1;
+
+                        if(cropped1(tmpxx,tmpyy)!=0 && tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+                            roi_image(tmpx,tmpy)=i+1;
+                    }
+                }
+        }
+    }
+
+    //Filter the point cloud for projection on the ground plane
+
     if (final_result.getSize()!=0)
     {
         // initialize size of variables
@@ -300,19 +382,19 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
             }
 
 //        ////////////// just for test (must be removed)
-            if(visualize_roi)
-                for(int tmpx=start_column, tmpxx=0; tmpxx<cropped1.x_size(); ++tmpx,++tmpxx)
-                {
-                    for(int tmpy=start_row, tmpyy=0; tmpyy<cropped1.y_size(); ++tmpy,++tmpyy)
-                    {
-                        if(tmpyy==0 || tmpyy==cropped1.y_size()-1 || tmpxx==0 || tmpxx==cropped1.x_size()-1) //if on the border of the image
-                            if (tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
-                                roi_image(tmpx,tmpy)=i+1;
-
-                        if(cropped1(tmpxx,tmpyy)!=0 && tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
-                            roi_image(tmpx,tmpy)=i+1;
-                    }
-                }
+//            if(visualize_roi)
+//                for(int tmpx=start_column, tmpxx=0; tmpxx<cropped1.x_size(); ++tmpx,++tmpxx)
+//                {
+//                    for(int tmpy=start_row, tmpyy=0; tmpyy<cropped1.y_size(); ++tmpy,++tmpyy)
+//                    {
+//                        if(tmpyy==0 || tmpyy==cropped1.y_size()-1 || tmpxx==0 || tmpxx==cropped1.x_size()-1) //if on the border of the image
+//                            if (tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+//                                roi_image(tmpx,tmpy)=i+1;
+//
+//                        if(cropped1(tmpxx,tmpyy)!=0 && tmpx<640 && tmpy<480 && tmpx > 0 && tmpy > 0)
+//                            roi_image(tmpx,tmpy)=i+1;
+//                    }
+//                }
         }
     }
     /// end of vizualisation - WORKING !!

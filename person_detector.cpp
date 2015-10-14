@@ -499,7 +499,7 @@ public:
     }
 
     void save_features(const Vector<Vector< double > >& detected_Bbox, const Vector<Vector<double> >& x_point_cloud_distribution,const Vector<Vector<double> >& y_point_cloud_distribution,
-                        const Matrix<double>& depth_map, const PointCloud& point_cloud)
+                        const Vector<Vector<double> >& x_point_cloud_distribution_full,const Vector<Vector<double> >& y_point_cloud_distribution_full,const Matrix<double>& depth_map, const PointCloud& point_cloud)
     {
     //initialise needed elements
         // File to save bounding box coorinates
@@ -554,21 +554,31 @@ public:
             //Matrix<double> occupancy;
             //occupancy.set_size(x_bins, z_bins);
             //occupancy.fill(0);
+
+            //Create a PCL point cloud that contins all the detected person
+            for(int vector_size = 0; vector_size < (x_point_cloud_distribution_full(i)).getSize(); ++vector_size)
+            {
+                int element_place =  (y_point_cloud_distribution_full(i)(vector_size)*width) + x_point_cloud_distribution_full(i)(vector_size);
+
+                //fill in pcl point cloud
+                int x_inBbox = x_point_cloud_distribution_full(i)(vector_size) - detected_Bbox(i)(0);
+                int y_inBbox = y_point_cloud_distribution_full(i)(vector_size) - detected_Bbox(i)(1);
+                int element_place_pcl = (y_inBbox*cloud.width) + x_inBbox;
+                cloud.points[element_place_pcl].x = point_cloud.X(element_place);
+                cloud.points[element_place_pcl].y = point_cloud.Y(element_place);
+                cloud.points[element_place_pcl].z = point_cloud.Z(element_place);
+
+                //if(pos_x>0 && pos_x < x_bins && pos_z > 0 && pos_z < z_bins)
+                    //occupancy(pos_x, pos_z) = 255;
+            }
+
+            //Use cropped version of point cloud to project on the ground
             for(int vector_size = 0; vector_size < (x_point_cloud_distribution(i)).getSize(); ++vector_size)
             {
                 int element_place =  (y_point_cloud_distribution(i)(vector_size)*width) + x_point_cloud_distribution(i)(vector_size);
                 double zj = point_cloud.Z(element_place);
                 double xj = point_cloud.X(element_place);
                 double yj = point_cloud.Y(element_place);
-
-                //fill in pcl poin t cloud
-                int x_inBbox = x_point_cloud_distribution(i)(vector_size) - detected_Bbox(i)(0);
-                int y_inBbox = y_point_cloud_distribution(i)(vector_size) - detected_Bbox(i)(1);
-                int element_place_pcl = (y_inBbox*cloud.width) + x_inBbox;
-                cloud.points[element_place_pcl].x = point_cloud.X(element_place);
-                cloud.points[element_place_pcl].y = point_cloud.Y(element_place);
-                cloud.points[element_place_pcl].z = point_cloud.Z(element_place);
-
 
                 double x = xj - min_x_;
                 double z = zj - min_z_;
@@ -578,9 +588,6 @@ public:
 
                 vect_pos_x.pushBack(pos_x);
                 vect_pos_z.pushBack(pos_z);
-
-                //if(pos_x>0 && pos_x < x_bins && pos_z > 0 && pos_z < z_bins)
-                    //occupancy(pos_x, pos_z) = 255;
             }
 
             //Write occupancy matrix to file
@@ -1290,7 +1297,7 @@ public:
         cv::namedWindow( "Display window", CV_WINDOW_NORMAL );// Create a window for display. OpenCV                 // Added
         //cv::namedWindow( "Display window 2", CV_WINDOW_NORMAL );// Create a window for display. OpenCV                 // Added
 
-        save_features(detected_bounding_boxes, detector_seg->x_distribution, detector_seg->y_distribution, depth_map, point_cloud);
+        save_features(detected_bounding_boxes, detector_seg->x_distribution, detector_seg->y_distribution, detector_seg->x_distribution_full, detector_seg->y_distribution_full, depth_map, point_cloud);
 
         ///Attempt 4 - project detected pc from depth_map
         Matrix<double> objects_projected;
