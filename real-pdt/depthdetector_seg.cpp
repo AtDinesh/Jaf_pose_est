@@ -234,8 +234,6 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
         x_distribution.setSize(final_result.getSize());
         y_distribution.clearContent();
         y_distribution.setSize(final_result.getSize());
-        dist_distribution.clearContent();
-        dist_distribution.setSize(final_result.getSize());
 
         // working on every bbox of final_result
         for (int i = 0; i < final_result.getSize(); ++i)
@@ -297,7 +295,6 @@ Vector<Vector<double> > DepthDetector_Seg::EvaluateTemplate(const Matrix<double>
                         // pushBack data in variables for PCA
                         x_distribution(i).pushBack(ii_depth);
                         y_distribution(i).pushBack(jj_depth);
-                        dist_distribution(i).pushBack(d_val*20); //ATTENTION !!
                     }
                 }
             }

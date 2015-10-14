@@ -21,7 +21,6 @@ public:
     //Vector<Vector<Vector<double> > > points_distribution;
     Vector<Vector<double> > x_distribution;
     Vector<Vector<double> > y_distribution; //to try to projet pc from depth_map
-    Vector<Vector<double> > dist_distribution;
 
     //Added
     Matrix<int> roiInHist_view;
